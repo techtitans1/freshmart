@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Admin</title>
+    <script>
+        // Redirect based on login status immediately
+        if (sessionStorage.getItem('loggedInUserEmail')) {
+            window.location.href = 'dashboard_overview.html';
+        } else {
+            window.location.href = 'login.html';
+        }
+    </script>
+</head>
+<body>
+    <!-- This page content will rarely be seen as it redirects quickly -->
+    <p>Redirecting...</p>
+</body>
+</html>
