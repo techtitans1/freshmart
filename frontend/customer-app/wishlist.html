@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist - FreshMart</title>
+    <link rel="stylesheet" href="css/wishlist.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="index.html" class="logo">
+                <i class="fas fa-leaf logo-icon"></i>
+                <span class="site-name">FreshMart</span>
+            </a>
+        </div>
+        
+        <div class="nav-center">
+            <h1 class="page-title">
+                <i class="fas fa-heart"></i>
+                My Wishlist
+            </h1>
+        </div>
+        
+        <div class="nav-right">
+            <a href="profile.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                <span>Profile</span>
+            </a>
+            <a href="cart.html" class="cart-link">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Wishlist Summary Card -->
+            <section class="summary-card">
+                <div class="summary-header">
+                    <div class="summary-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="summary-info">
+                        <h2>Wishlist Items</h2>
+                        <span class="summary-count" id="wishlistCount">0</span>
+                    </div>
+                </div>
+                <div class="summary-actions">
+                    <button class="add-all-btn" id="addAllToCart" onclick="addAllToCart()">
+                        <i class="fas fa-cart-plus"></i>
+                        Add All to Cart
+                    </button>
+                    <button class="clear-btn" id="clearWishlist" onclick="clearWishlist()">
+                        <i class="fas fa-trash"></i>
+                        Clear All
+                    </button>
+                </div>
+            </section>
+
+            <!-- Wishlist Items -->
+            <section class="wishlist-section">
+                <div class="wishlist-grid" id="wishlistGrid">
+                    <!-- Wishlist items will be loaded dynamically -->
+                </div>
+                
+                <!-- Empty State -->
+                <div class="empty-state hidden" id="emptyWishlist">
+                    <div class="empty-content">
+                        <div class="empty-icon">
+                            <i class="fas fa-heart-broken"></i>
+                        </div>
+                        <h3>Your wishlist is empty</h3>
+                        <p>Save items you love by tapping the heart icon on any product. They'll appear here for easy access!</p>
+                        <a href="index.html" class="shop-now-btn">
+                            <i class="fas fa-shopping-bag"></i>
+                            Explore Products
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <i class="fas fa-check-circle" id="toastIcon"></i>
+            <span id="toastMessage">Success!</span>
+        </div>
+        <button class="toast-close" onclick="hideToast()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <span>Loading wishlist...</span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-leaf"></i>
+                <span>FreshMart</span>
+            </div>
+            <p>Fresh groceries delivered to your doorstep</p>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 FreshMart. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/wishlist.js"></script>
+</body>
+</html>

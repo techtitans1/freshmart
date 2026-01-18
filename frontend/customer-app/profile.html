@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - FreshMart</title>
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Add these before your script.js -->
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+</head>
+<body>
+    <!-- ==================== NAVIGATION BAR ==================== -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="index.html" class="logo">
+                <i class="fas fa-leaf logo-icon"></i>
+                <span class="site-name">FreshMart</span>
+            </a>
+        </div>
+        
+        <div class="nav-center">
+            <h1 class="page-title">
+                <i class="fas fa-user-circle"></i>
+                My Profile
+            </h1>
+        </div>
+        
+        <div class="nav-right">
+            <a href="index.html" class="back-to-home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="cart.html" class="cart-link">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Profile Header Card -->
+            <section class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-cover">
+                        <div class="cover-pattern"></div>
+                    </div>
+                    
+                    <div class="profile-avatar-wrapper">
+                        <div class="profile-avatar" id="profileAvatar">
+                            <img id="profilePhoto" src="" alt="Profile Photo" class="profile-img">
+                            <div class="photo-placeholder" id="photoPlaceholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <label class="photo-overlay" for="photoInput">
+                                <i class="fas fa-camera"></i>
+                                <span>Change</span>
+                            </label>
+                            <input type="file" id="photoInput" accept="image/*" class="file-input">
+                        </div>
+                        <div class="profile-badge" id="profileBadge" title="Verified Member">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-info">
+                        <h1 class="username" id="username">Guest User</h1>
+                        <div class="member-since">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Member since <span id="memberSince">-</span></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-details">
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="detail-content">
+                            <span class="detail-label">Phone</span>
+                            <span class="detail-value" id="phone">Not set</span>
+                        </div>
+                        <button class="detail-edit" onclick="openEditModal('phone')">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="detail-content">
+                            <span class="detail-label">Email</span>
+                            <span class="detail-value" id="email">Not set</span>
+                        </div>
+                        <button class="detail-edit" onclick="openEditModal('email')">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="detail-content">
+                            <span class="detail-label">Delivery Address</span>
+                            <span class="detail-value" id="address">Not set</span>
+                        </div>
+                        <button class="detail-edit" onclick="openEditModal('address')">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <button class="edit-profile-btn" onclick="openEditModal('all')">
+                    <i class="fas fa-user-edit"></i>
+                    Edit Profile
+                </button>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-icon orders">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalOrders">0</span>
+                        <span class="stat-label">Orders</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon wishlist">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="wishlistCount">0</span>
+                        <span class="stat-label">Wishlist</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon savings">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalSavings">₹0</span>
+                        <span class="stat-label">Saved</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon wallet">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="walletBalance">₹0</span>
+                        <span class="stat-label">Wallet</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="actions-section">
+                <h2 class="section-title">
+                    <i class="fas fa-bolt"></i>
+                    Quick Actions
+                </h2>
+                
+                <div class="actions-grid">
+                    <a href="orders.html" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="action-info">
+                            <span class="action-title">My Orders</span>
+                            <span class="action-subtitle">Track your orders</span>
+                        </div>
+                        <i class="fas fa-chevron-right action-arrow"></i>
+                    </a>
+                    
+                    <a href="addresses.html" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-map-marked-alt"></i>
+                        </div>
+                        <div class="action-info">
+                            <span class="action-title">Saved Addresses</span>
+                            <span class="action-subtitle">Manage delivery addresses</span>
+                        </div>
+                        <i class="fas fa-chevron-right action-arrow"></i>
+                    </a>
+                    
+                    <a href="payment-methods.html" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="action-info">
+                            <span class="action-title">Payment Methods</span>
+                            <span class="action-subtitle">Cards & UPI</span>
+                        </div>
+                        <i class="fas fa-chevron-right action-arrow"></i>
+                    </a>
+                    
+                    <a href="wishlist.html" class="action-card">
+                        <div class="action-icon heart">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="action-info">
+                            <span class="action-title">My Wishlist</span>
+                            <span class="action-subtitle">Your favourite items</span>
+                        </div>
+                        <i class="fas fa-chevron-right action-arrow"></i>
+                    </a>
+                    
+                    <a href="wallet.html" class="action-card">
+                        <div class="action-icon wallet">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="action-info">
+                            <span class="action-title">FreshMart Wallet</span>
+                            <span class="action-subtitle">Add money & pay</span>
+                        </div>
+                        <i class="fas fa-chevron-right action-arrow"></i>
+                    </a>
+                    
+                    <a href="coupons.html" class="action-card">
+                        <div class="action-icon coupon">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <div class="action-info">
+                            <span class="action-title">My Coupons</span>
+                            <span class="action-subtitle">Available offers</span>
+                        </div>
+                        <i class="fas fa-chevron-right action-arrow"></i>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Recent Orders -->
+            <section class="orders-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-history"></i>
+                        Recent Orders
+                    </h2>
+                    <a href="orders.html" class="view-all-link">
+                        View All <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                
+                <div class="orders-list" id="recentOrders">
+                    <!-- Orders will be loaded dynamically -->
+                </div>
+                
+                <div class="no-orders hidden" id="noOrders">
+                    <div class="no-orders-content">
+                        <i class="fas fa-shopping-basket"></i>
+                        <h3>No orders yet</h3>
+                        <p>Your order history will appear here</p>
+                        <a href="index.html" class="start-shopping-btn">
+                            <i class="fas fa-shopping-cart"></i>
+                            Start Shopping
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings & Support -->
+            <section class="settings-section">
+                <h2 class="section-title">
+                    <i class="fas fa-cog"></i>
+                    Settings & Support
+                </h2>
+                
+                <div class="settings-list">
+                    <button class="settings-item" onclick="openNotificationSettings()">
+                        <div class="settings-icon">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="settings-info">
+                            <span class="settings-title">Notifications</span>
+                            <span class="settings-subtitle">Manage notification preferences</span>
+                        </div>
+                        <div class="settings-toggle">
+                            <input type="checkbox" id="notificationToggle" checked>
+                            <label for="notificationToggle" class="toggle-label"></label>
+                        </div>
+                    </button>
+                    
+                    <a href="help.html" class="settings-item">
+                        <div class="settings-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="settings-info">
+                            <span class="settings-title">Help & Support</span>
+                            <span class="settings-subtitle">FAQs and customer support</span>
+                        </div>
+                        <i class="fas fa-chevron-right settings-arrow"></i>
+                    </a>
+                    
+                    <a href="about.html" class="settings-item">
+                        <div class="settings-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="settings-info">
+                            <span class="settings-title">About FreshMart</span>
+                            <span class="settings-subtitle">Version 1.0.0</span>
+                        </div>
+                        <i class="fas fa-chevron-right settings-arrow"></i>
+                    </a>
+                    
+                    <button class="settings-item" onclick="shareApp()">
+                        <div class="settings-icon share">
+                            <i class="fas fa-share-alt"></i>
+                        </div>
+                        <div class="settings-info">
+                            <span class="settings-title">Share App</span>
+                            <span class="settings-subtitle">Invite friends & earn rewards</span>
+                        </div>
+                        <i class="fas fa-chevron-right settings-arrow"></i>
+                    </button>
+                    
+                    <button class="settings-item" onclick="rateApp()">
+                        <div class="settings-icon rate">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="settings-info">
+                            <span class="settings-title">Rate Us</span>
+                            <span class="settings-subtitle">Share your feedback</span>
+                        </div>
+                        <i class="fas fa-chevron-right settings-arrow"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Logout Button -->
+            <section class="logout-section">
+                <button class="logout-btn" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+                <p class="logout-note">You can always log back in anytime</p>
+            </section>
+        </div>
+    </main>
+
+    <!-- ==================== EDIT PROFILE MODAL ==================== -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="modalTitle">Edit Profile</h2>
+                <button class="modal-close" onclick="closeEditModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form class="modal-form" id="editForm">
+                <!-- Profile Photo Section -->
+                <div class="form-section photo-section" id="photoSection">
+                    <label class="form-label">Profile Photo</label>
+                    <div class="photo-upload-area">
+                        <div class="upload-avatar">
+                            <img id="editProfilePhoto" src="" alt="Profile" class="upload-img">
+                            <div class="upload-placeholder" id="editPhotoPlaceholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <label class="upload-overlay" for="editPhotoInput">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                            <input type="file" id="editPhotoInput" accept="image/*" class="file-input">
+                        </div>
+                        <div class="photo-actions">
+                            <label for="editPhotoInput" class="upload-btn">
+                                <i class="fas fa-upload"></i>
+                                Upload Photo
+                            </label>
+                            <button type="button" class="remove-photo-btn" onclick="removePhoto()">
+                                <i class="fas fa-trash"></i>
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Name Section -->
+                <div class="form-section" id="nameSection">
+                    <label class="form-label" for="editName">
+                        <i class="fas fa-user"></i>
+                        Full Name
+                    </label>
+                    <input type="text" id="editName" class="form-input" placeholder="Enter your full name" required>
+                </div>
+                
+                <!-- Phone Section -->
+                <div class="form-section" id="phoneSection">
+                    <label class="form-label" for="editPhone">
+                        <i class="fas fa-phone"></i>
+                        Phone Number
+                    </label>
+                    <div class="phone-input-group">
+                        <span class="country-code">+91</span>
+                        <input type="tel" id="editPhone" class="form-input" placeholder="Enter phone number" maxlength="10" pattern="[0-9]{10}">
+                    </div>
+                </div>
+                
+                <!-- Email Section -->
+                <div class="form-section" id="emailSection">
+                    <label class="form-label" for="editEmail">
+                        <i class="fas fa-envelope"></i>
+                        Email Address
+                    </label>
+                    <input type="email" id="editEmail" class="form-input" placeholder="Enter email address">
+                </div>
+                
+                <!-- Address Section -->
+                <div class="form-section" id="addressSection">
+                    <label class="form-label" for="editAddress">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Delivery Address
+                    </label>
+                    <textarea id="editAddress" class="form-textarea" placeholder="Enter your delivery address" rows="3"></textarea>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-check"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== TOAST NOTIFICATION ==================== -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <i class="fas fa-check-circle" id="toastIcon"></i>
+            <span id="toastMessage">Success!</span>
+        </div>
+        <button class="toast-close" onclick="hideToast()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- ==================== LOADING OVERLAY ==================== -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <span>Loading...</span>
+        </div>
+    </div>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-leaf"></i>
+                <span>FreshMart</span>
+            </div>
+            <p>Fresh groceries delivered to your doorstep</p>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 FreshMart. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - FreshMart</title>
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Background Pattern -->
+    <div class="auth-bg">
+        <div class="bg-shape shape-1"></div>
+        <div class="bg-shape shape-2"></div>
+        <div class="bg-shape shape-3"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="auth-container">
+        <!-- Left Side - Branding -->
+        <div class="auth-branding">
+            <a href="index.html" class="brand-logo">
+                <i class="fas fa-leaf"></i>
+                <span>FreshMart</span>
+            </a>
+            <div class="brand-content">
+                <h1>Join FreshMart!</h1>
+                <p>Create an account to enjoy fresh groceries delivered to your doorstep.</p>
+                <div class="brand-features">
+                    <div class="feature">
+                        <i class="fas fa-gift"></i>
+                        <span>Welcome Offers</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-history"></i>
+                        <span>Order Tracking</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-heart"></i>
+                        <span>Wishlist</span>
+                    </div>
+                </div>
+            </div>
+            <div class="brand-image">
+                <img src="https://images.unsplash.com/photo-1606787366850-de6330128bfc?w=400" alt="Fresh Groceries">
+            </div>
+        </div>
+
+        <!-- Right Side - Signup Form -->
+        <div class="auth-form-container signup-container">
+            <div class="auth-form-box">
+                <!-- Header -->
+                <div class="form-header">
+                    <h2>Create Account</h2>
+                    <p>Fill in your details to get started</p>
+                </div>
+
+                <!-- Error/Success Messages -->
+                <div class="auth-message hidden" id="authMessage">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="messageText"></span>
+                </div>
+
+                <!-- Signup Form -->
+                <form id="signupForm" class="auth-form">
+                    <!-- Personal Details -->
+                    <div class="form-section">
+                        <h4><i class="fas fa-user"></i> Personal Details</h4>
+                        
+                        <div class="form-group">
+                            <label for="fullName">
+                                <i class="fas fa-user"></i>
+                                Full Name *
+                            </label>
+                            <input type="text" id="fullName" placeholder="Enter your full name" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email">
+                                    <i class="fas fa-envelope"></i>
+                                    Email *
+                                </label>
+                                <input type="email" id="email" placeholder="Enter email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">
+                                    <i class="fas fa-phone"></i>
+                                    Phone *
+                                </label>
+                                <div class="phone-input">
+                                    <span class="country-code">+91</span>
+                                    <input type="tel" id="phone" placeholder="10-digit" maxlength="10" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-section">
+                        <h4><i class="fas fa-lock"></i> Security</h4>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="password">
+                                    <i class="fas fa-lock"></i>
+                                    Password *
+                                </label>
+                                <div class="password-input">
+                                    <input type="password" id="password" placeholder="Min 6 characters" required minlength="6">
+                                    <button type="button" class="toggle-password" data-target="password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">
+                                    <i class="fas fa-lock"></i>
+                                    Confirm Password *
+                                </label>
+                                <div class="password-input">
+                                    <input type="password" id="confirmPassword" placeholder="Confirm password" required>
+                                    <button type="button" class="toggle-password" data-target="confirmPassword">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Password Strength -->
+                        <div class="password-strength hidden" id="passwordStrength">
+                            <div class="strength-bar">
+                                <div class="strength-fill" id="strengthFill"></div>
+                            </div>
+                            <span class="strength-text" id="strengthText">Weak</span>
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="form-section">
+                        <h4><i class="fas fa-map-marker-alt"></i> Delivery Address</h4>
+                        
+                        <div class="form-group">
+                            <label for="address">
+                                <i class="fas fa-home"></i>
+                                Address *
+                            </label>
+                            <textarea id="address" placeholder="House/Flat No., Building, Street, Area" rows="2" required></textarea>
+                        </div>
+
+                        <div class="form-row three-col">
+                            <div class="form-group">
+                                <label for="city">
+                                    <i class="fas fa-city"></i>
+                                    City *
+                                </label>
+                                <input type="text" id="city" placeholder="City" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="state">
+                                    <i class="fas fa-landmark"></i>
+                                    State
+                                </label>
+                                <input type="text" id="state" placeholder="State">
+                            </div>
+                            <div class="form-group">
+                                <label for="pincode">
+                                    <i class="fas fa-map-pin"></i>
+                                    Pincode *
+                                </label>
+                                <input type="text" id="pincode" placeholder="6-digit" maxlength="6" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terms -->
+                    <div class="form-group terms-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="termsCheck" required>
+                            <span class="checkmark"></span>
+                            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="signupBtn">
+                        <span>Create Account</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="auth-divider">
+                    <span>or sign up with</span>
+                </div>
+
+                <!-- Social Login -->
+                <div class="social-login">
+                    <button type="button" class="btn-google" id="googleSignupBtn">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                        <span>Continue with Google</span>
+                    </button>
+                </div>
+
+                <!-- Login Link -->
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="login.html">Login</a></p>
+                </div>
+            </div>
+
+            <!-- Back to Home -->
+            <a href="index.html" class="back-home">
+                <i class="fas fa-arrow-left"></i>
+                Back to Home
+            </a>
+        </div>
+    </div>
+
+    <!-- Complete Profile Modal (for Google users) -->
+    <div class="modal-overlay" id="completeProfileModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Complete Your Profile</h3>
+            </div>
+            <div class="modal-body">
+                <div class="profile-welcome">
+                    <img src="" alt="Profile" id="googleUserPhoto">
+                    <h4 id="googleUserName">Welcome!</h4>
+                    <p>Please provide additional details to complete your profile</p>
+                </div>
+                <form id="completeProfileForm">
+                    <div class="form-group">
+                        <label for="profilePhone">
+                            <i class="fas fa-phone"></i>
+                            Phone Number *
+                        </label>
+                        <div class="phone-input">
+                            <span class="country-code">+91</span>
+                            <input type="tel" id="profilePhone" placeholder="10-digit number" maxlength="10" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profileAddress">
+                            <i class="fas fa-home"></i>
+                            Address *
+                        </label>
+                        <textarea id="profileAddress" placeholder="Enter your full address" rows="2" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="profileCity">
+                                <i class="fas fa-city"></i>
+                                City *
+                            </label>
+                            <input type="text" id="profileCity" placeholder="City" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="profilePincode">
+                                <i class="fas fa-map-pin"></i>
+                                Pincode *
+                            </label>
+                            <input type="text" id="profilePincode" placeholder="6-digit" maxlength="6" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profileState">
+                            <i class="fas fa-landmark"></i>
+                            State
+                        </label>
+                        <input type="text" id="profileState" placeholder="State (optional)">
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-check"></i>
+                        Complete & Continue
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-body">
+            <i class="fas fa-check-circle" id="toastIcon"></i>
+            <span id="toastMsg">Success!</span>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading hidden" id="loading">
+        <div class="loading-box">
+            <div class="spinner"></div>
+            <span id="loadingText">Creating account...</span>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+<script src="js/google-auth.js"></script>
+
+    
+    <!-- Auth JS -->
+    <script src="js/auth.js"></script>
+</body>
+</html>

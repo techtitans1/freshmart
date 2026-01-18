@@ -1,0 +1,234 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Addresses - FreshMart</title>
+    <link rel="stylesheet" href="css/addresses.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="index.html" class="logo">
+                <i class="fas fa-leaf logo-icon"></i>
+                <span class="site-name">FreshMart</span>
+            </a>
+        </div>
+        
+        <div class="nav-center">
+            <h1 class="page-title">
+                <i class="fas fa-map-marker-alt"></i>
+                Saved Addresses
+            </h1>
+        </div>
+        
+        <div class="nav-right">
+            <a href="profile.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                <span>Profile</span>
+            </a>
+            <a href="cart.html" class="cart-link">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Addresses Summary Card -->
+            <section class="summary-card">
+                <div class="summary-header">
+                    <div class="summary-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <div class="summary-info">
+                        <h2>Saved Locations</h2>
+                        <span class="summary-count" id="addressCount">0</span>
+                    </div>
+                </div>
+                <button class="add-address-btn" onclick="openAddressModal()">
+                    <i class="fas fa-plus"></i>
+                    Add New Address
+                </button>
+            </section>
+
+            <!-- Addresses List -->
+            <section class="addresses-section">
+                <div class="addresses-list" id="addressesList">
+                    <!-- Addresses will be loaded dynamically -->
+                </div>
+                
+                <!-- Empty State -->
+                <div class="empty-state hidden" id="emptyAddresses">
+                    <div class="empty-content">
+                        <div class="empty-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h3>No saved addresses</h3>
+                        <p>Add your delivery addresses for faster checkout. We'll remember them for your next order!</p>
+                        <button class="add-new-btn" onclick="openAddressModal()">
+                            <i class="fas fa-plus"></i>
+                            Add Your First Address
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Add/Edit Address Modal -->
+    <div class="modal-overlay" id="addressModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="addressModalTitle">Add New Address</h2>
+                <button class="modal-close" onclick="closeAddressModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form class="modal-form" id="addressForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="addressLabel">
+                            <i class="fas fa-tag"></i>
+                            Address Label
+                        </label>
+                        <div class="label-options">
+                            <button type="button" class="label-btn active" data-label="home">
+                                <i class="fas fa-home"></i> Home
+                            </button>
+                            <button type="button" class="label-btn" data-label="work">
+                                <i class="fas fa-briefcase"></i> Work
+                            </button>
+                            <button type="button" class="label-btn" data-label="other">
+                                <i class="fas fa-map-pin"></i> Other
+                            </button>
+                        </div>
+                        <input type="hidden" id="addressLabel" value="home">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="fullName">
+                        <i class="fas fa-user"></i>
+                        Full Name
+                    </label>
+                    <input type="text" id="fullName" class="form-input" placeholder="Enter full name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="phone">
+                        <i class="fas fa-phone"></i>
+                        Phone Number
+                    </label>
+                    <div class="phone-input-group">
+                        <span class="country-code">+91</span>
+                        <input type="tel" id="phone" class="form-input" placeholder="10-digit mobile number" maxlength="10" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="streetAddress">
+                        <i class="fas fa-road"></i>
+                        Street Address
+                    </label>
+                    <input type="text" id="streetAddress" class="form-input" placeholder="House no., Building, Street, Area" required>
+                </div>
+                
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label class="form-label" for="city">
+                            <i class="fas fa-city"></i>
+                            City
+                        </label>
+                        <input type="text" id="city" class="form-input" placeholder="City" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="state">
+                            <i class="fas fa-map"></i>
+                            State
+                        </label>
+                        <input type="text" id="state" class="form-input" placeholder="State" required>
+                    </div>
+                </div>
+                
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label class="form-label" for="pincode">
+                            <i class="fas fa-map-pin"></i>
+                            Pincode
+                        </label>
+                        <input type="text" id="pincode" class="form-input" placeholder="6-digit pincode" maxlength="6" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="landmark">
+                            <i class="fas fa-landmark"></i>
+                            Landmark (Optional)
+                        </label>
+                        <input type="text" id="landmark" class="form-input" placeholder="Nearby landmark">
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="isDefault">
+                    <label for="isDefault">Set as default address</label>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeAddressModal()">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-check"></i>
+                        Save Address
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <i class="fas fa-check-circle" id="toastIcon"></i>
+            <span id="toastMessage">Success!</span>
+        </div>
+        <button class="toast-close" onclick="hideToast()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <span>Loading addresses...</span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-leaf"></i>
+                <span>FreshMart</span>
+            </div>
+            <p>Fresh groceries delivered to your doorstep</p>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 FreshMart. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/addresses.js"></script>
+</body>
+</html>

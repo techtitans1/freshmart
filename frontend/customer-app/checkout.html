@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - FreshMart</title>
+    <link rel="stylesheet" href="css/checkout.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="index.html" class="logo">
+                <i class="fas fa-leaf logo-icon"></i>
+                <span class="site-name">FreshMart</span>
+            </a>
+        </div>
+        <div class="nav-center">
+            <h1 class="page-title">
+                <i class="fas fa-credit-card"></i>
+                Checkout
+            </h1>
+        </div>
+        <div class="nav-right">
+            <a href="cart.html" class="nav-btn">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to Cart</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Progress Steps -->
+    <div class="checkout-progress">
+        <div class="progress-step completed">
+            <div class="step-icon"><i class="fas fa-shopping-cart"></i></div>
+            <span>Cart</span>
+        </div>
+        <div class="progress-line completed"></div>
+        <div class="progress-step active">
+            <div class="step-icon"><i class="fas fa-map-marker-alt"></i></div>
+            <span>Address</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step">
+            <div class="step-icon"><i class="fas fa-credit-card"></i></div>
+            <span>Payment</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step">
+            <div class="step-icon"><i class="fas fa-check"></i></div>
+            <span>Confirm</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="checkout-layout">
+                
+                <!-- Left Side -->
+                <div class="checkout-left">
+                    
+                    <!-- Delivery Address Section -->
+                    <section class="checkout-section" id="addressSection">
+                        <div class="section-header">
+                            <h2><i class="fas fa-map-marker-alt"></i> Delivery Address</h2>
+                            <button class="change-btn" id="changeAddressBtn">
+                                <i class="fas fa-edit"></i> Change
+                            </button>
+                        </div>
+                        
+                        <div class="address-display" id="addressDisplay">
+                            <div class="address-loading">
+                                <div class="spinner-small"></div>
+                                <span>Loading address...</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Address Form (hidden by default) -->
+                        <div class="address-form-container hidden" id="addressFormContainer">
+                            <form id="addressForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label><i class="fas fa-user"></i> Full Name *</label>
+                                        <input type="text" id="addrName" placeholder="Enter full name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label><i class="fas fa-phone"></i> Phone *</label>
+                                        <div class="phone-input">
+                                            <span class="code">+91</span>
+                                            <input type="tel" id="addrPhone" placeholder="10-digit number" maxlength="10" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-envelope"></i> Email *</label>
+                                    <input type="email" id="addrEmail" placeholder="Enter email" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-home"></i> Address *</label>
+                                    <textarea id="addrLine" placeholder="House No., Building, Street, Area" rows="2" required></textarea>
+                                </div>
+                                
+                                <div class="form-row three-col">
+                                    <div class="form-group">
+                                        <label><i class="fas fa-city"></i> City *</label>
+                                        <input type="text" id="addrCity" placeholder="City" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label><i class="fas fa-landmark"></i> State</label>
+                                        <input type="text" id="addrState" placeholder="State">
+                                    </div>
+                                    <div class="form-group">
+                                        <label><i class="fas fa-map-pin"></i> Pincode *</label>
+                                        <input type="text" id="addrPincode" placeholder="6-digit" maxlength="6" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="button" class="btn-cancel" id="cancelAddressBtn">Cancel</button>
+                                    <button type="submit" class="btn-save">
+                                        <i class="fas fa-check"></i> Save Address
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+
+                    <!-- Payment Method Section -->
+                    <section class="checkout-section" id="paymentSection">
+                        <div class="section-header">
+                            <h2><i class="fas fa-credit-card"></i> Payment Method</h2>
+                        </div>
+                        
+                        <div class="payment-options">
+                            <!-- Online Payment -->
+                            <label class="payment-option" id="onlinePaymentOption">
+                                <input type="radio" name="paymentMethod" value="online" checked>
+                                <div class="option-content">
+                                    <div class="option-icon online">
+                                        <i class="fas fa-mobile-alt"></i>
+                                    </div>
+                                    <div class="option-details">
+                                        <span class="option-title">Pay Online</span>
+                                        <span class="option-subtitle">UPI, Cards, Net Banking, Wallets</span>
+                                    </div>
+                                    <div class="option-badge recommended">Recommended</div>
+                                    <i class="fas fa-check-circle option-check"></i>
+                                </div>
+                                <div class="payment-icons">
+                                    <i class="fab fa-google-pay"></i>
+                                    <i class="fab fa-cc-visa"></i>
+                                    <i class="fab fa-cc-mastercard"></i>
+                                    <i class="fas fa-university"></i>
+                                </div>
+                            </label>
+                            
+                            <!-- Cash on Delivery -->
+                            <label class="payment-option" id="codPaymentOption">
+                                <input type="radio" name="paymentMethod" value="cod">
+                                <div class="option-content">
+                                    <div class="option-icon cod">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </div>
+                                    <div class="option-details">
+                                        <span class="option-title">Cash on Delivery</span>
+                                        <span class="option-subtitle">Pay when you receive your order</span>
+                                    </div>
+                                    <i class="fas fa-check-circle option-check"></i>
+                                </div>
+                                <div class="cod-note">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Please keep exact change ready</span>
+                                </div>
+                            </label>
+                        </div>
+                    </section>
+
+                    <!-- Order Items Preview -->
+                    <section class="checkout-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-shopping-bag"></i> Order Items</h2>
+                            <span class="items-count" id="itemsCount">0 items</span>
+                        </div>
+                        
+                        <div class="order-items" id="orderItems">
+                            <!-- Items will be rendered here -->
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Right Side - Order Summary -->
+                <div class="checkout-right">
+                    <div class="order-summary-card">
+                        <h3><i class="fas fa-receipt"></i> Order Summary</h3>
+                        
+                        <div class="summary-rows">
+                            <div class="summary-row">
+                                <span>Subtotal</span>
+                                <span id="subtotal">₹0</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Delivery</span>
+                                <span id="delivery">₹40</span>
+                            </div>
+                            <div class="summary-row discount">
+                                <span>Discount</span>
+                                <span id="discount">-₹0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-divider"></div>
+                        
+                        <div class="summary-total">
+                            <span>Total</span>
+                            <span id="total">₹0</span>
+                        </div>
+                        
+                        <div class="savings-note hidden" id="savingsNote">
+                            <i class="fas fa-piggy-bank"></i>
+                            <span>You save <strong id="savings">₹0</strong> on this order!</span>
+                        </div>
+                        
+                        <button class="place-order-btn" id="placeOrderBtn">
+                            <i class="fas fa-lock"></i>
+                            <span id="placeOrderText">Place Order</span>
+                        </button>
+                        
+                        <div class="secure-note">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>100% Secure Checkout</span>
+                        </div>
+                        
+                        <!-- Delivery Info -->
+                        <div class="delivery-info">
+                            <div class="info-item">
+                                <i class="fas fa-truck"></i>
+                                <span>Delivery in 30-45 mins</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-box"></i>
+                                <span>Free delivery above ₹500</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <div class="toast-body">
+            <i class="fas fa-check-circle" id="toastIcon"></i>
+            <span id="toastMsg">Success!</span>
+        </div>
+        <button class="toast-close" onclick="hideToast()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading hidden" id="loading">
+        <div class="loading-box">
+            <div class="spinner"></div>
+            <span id="loadingText">Processing...</span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-leaf"></i>
+                <span>FreshMart</span>
+            </div>
+            <p>Fresh groceries delivered to your doorstep</p>
+        </div>
+    </footer>
+
+    <script src="js/checkout.js"></script>
+</body>
+</html>

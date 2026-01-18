@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - FreshMart</title>
+    <link rel="stylesheet" href="css/cart.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="index.html" class="logo">
+                <i class="fas fa-leaf logo-icon"></i>
+                <span class="site-name">FreshMart</span>
+            </a>
+        </div>
+        
+        <div class="nav-center">
+            <h1 class="page-title">
+                <i class="fas fa-shopping-cart"></i>
+                Shopping Cart
+            </h1>
+        </div>
+        
+        <div class="nav-right">
+            <a href="index.html" class="nav-btn back-btn">
+                <i class="fas fa-arrow-left"></i>
+                <span>Continue Shopping</span>
+            </a>
+            
+            <!-- Show when logged in -->
+            <a href="profile.html" class="user-avatar hidden" id="userAvatar" title="My Profile">
+                <img src="" alt="Profile" id="avatarImg">
+                <i class="fas fa-user" id="avatarIcon"></i>
+            </a>
+            
+            <!-- Show when not logged in -->
+            <a href="login.html" class="nav-btn login-btn" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Login</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- Login Alert (shown when not logged in) -->
+            <div class="alert-banner hidden" id="loginAlert">
+                <div class="alert-content">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Please <strong>login</strong> to checkout and track your orders</span>
+                </div>
+                <a href="login.html" class="alert-btn">Login Now</a>
+            </div>
+
+            <!-- Cart Header -->
+            <div class="cart-header">
+                <div class="header-left">
+                    <h2><i class="fas fa-shopping-bag"></i> My Cart</h2>
+                    <span class="items-count" id="itemsCount">0 items</span>
+                </div>
+                <button class="clear-btn hidden" id="clearBtn">
+                    <i class="fas fa-trash-alt"></i>
+                    Clear All
+                </button>
+            </div>
+
+            <!-- Cart Layout -->
+            <div class="cart-layout">
+                
+                <!-- Left: Cart Items -->
+                <div class="cart-items-container">
+                    <div class="cart-items" id="cartItems">
+                        <!-- Items rendered by JS -->
+                    </div>
+                    
+                    <!-- Empty Cart -->
+                    <div class="empty-cart hidden" id="emptyCart">
+                        <div class="empty-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3>Your cart is empty!</h3>
+                        <p>Looks like you haven't added anything yet.</p>
+                        <a href="index.html" class="shop-btn">
+                            <i class="fas fa-arrow-left"></i>
+                            Start Shopping
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right: Summary -->
+                <!-- Right: Summary -->
+                    <div class="cart-sidebar hidden" id="cartSidebar">
+                        
+                        <!-- Order Summary -->
+                        <div class="summary-card">
+                            <h3><i class="fas fa-receipt"></i> Order Summary</h3>
+                            
+                            <div class="summary-rows">
+                                <div class="summary-row">
+                                    <span>Subtotal</span>
+                                    <span id="subtotal">₹0</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Delivery</span>
+                                    <span id="delivery">₹40</span>
+                                </div>
+                                <div class="summary-row discount">
+                                    <span>Discount</span>
+                                    <span id="discount">-₹0</span>
+                                </div>
+                            </div>
+                            
+                            <div class="summary-divider"></div>
+                            
+                            <div class="summary-total">
+                                <span>Total</span>
+                                <span id="total">₹0</span>
+                            </div>
+                            
+                            <div class="delivery-note">
+                                <i class="fas fa-truck"></i>
+                                <span>Free delivery on orders above ₹500</span>
+                            </div>
+                            
+                            <div class="savings-note hidden" id="savingsNote">
+                                <i class="fas fa-piggy-bank"></i>
+                                <span>You save <strong id="savings">₹0</strong>!</span>
+                            </div>
+                            
+                            <!-- Payment Method Selection (MOVED HERE) -->
+                            <div class="payment-method-inline">
+                                <label class="payment-option-inline">
+                                    <input type="radio" name="paymentMethod" value="online" checked>
+                                    <div class="option-content-inline">
+                                        <i class="fas fa-credit-card"></i>
+                                        <span>Pay Online</span>
+                                    </div>
+                                </label>
+                                
+                                <label class="payment-option-inline">
+                                    <input type="radio" name="paymentMethod" value="cod">
+                                    <div class="option-content-inline">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        <span>Cash On Delivery</span>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <button class="checkout-btn" id="checkoutBtn">
+                                <i class="fas fa-lock"></i>
+                                <span id="checkoutText">Proceed to Pay</span>
+                            </button>
+                            
+                            <div class="secure-note">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>100% Secure Payment</span>
+                            </div>
+                            
+                            <div class="payment-icons">
+                                <span>We accept:</span>
+                                <div class="icons">
+                                    <i class="fab fa-cc-visa"></i>
+                                    <i class="fab fa-cc-mastercard"></i>
+                                    <i class="fab fa-google-pay"></i>
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <i class="fas fa-university"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Coupon -->
+                        <div class="coupon-card">
+                            <h4><i class="fas fa-tag"></i> Apply Coupon</h4>
+                            <div class="coupon-input">
+                                <input type="text" id="couponInput" placeholder="Enter code">
+                                <button id="couponBtn">Apply</button>
+                            </div>
+                            <div class="coupon-msg hidden" id="couponMsg"></div>
+                            <div class="coupon-hints">
+                                Try: <span class="hint" data-code="FRESH10">FRESH10</span>,
+                                <span class="hint" data-code="SAVE50">SAVE50</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Delivery Address -->
+                        <div class="address-card">
+                            <div class="address-header">
+                                <h4><i class="fas fa-map-marker-alt"></i> Delivery Address</h4>
+                                <span class="login-tag hidden" id="loginTag">
+                                    <i class="fas fa-lock"></i> Login Required
+                                </span>
+                            </div>
+                            <div class="address-body" id="addressBody">
+                                <p class="no-address">Please login to add address</p>
+                            </div>
+                            <button class="address-btn" id="addressBtn">
+                                <i class="fas fa-plus"></i>
+                                <span id="addressBtnText">Add Address</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Selection (NEW SECTION) 
+                    <div class="payment-method-card">
+                        <h4><i class="fas fa-credit-card"></i> Payment Method</h4>
+                        <div class="payment-options">
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="online" checked>
+                                <div class="option-content">
+                                    <div class="option-icon online">
+                                        <i class="fas fa-mobile-alt"></i>
+                                    </div>
+                                    <div class="option-info">
+                                        <span class="option-title">Pay Online</span>
+                                        <span class="option-subtitle">Cards, UPI, Wallets</span>
+                                    </div>
+                                    <i class="fas fa-check-circle option-check"></i>
+                                </div>
+                            </label>
+                            
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="cod">
+                                <div class="option-content">
+                                    <div class="option-icon cod">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </div>
+                                    <div class="option-info">
+                                        <span class="option-title">Cash on Delivery</span>
+                                        <span class="option-subtitle">Pay when delivered</span>
+                                    </div>
+                                    <i class="fas fa-check-circle option-check"></i>
+                                </div>
+                            </label>
+                        </div>
+                    </div>-->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== ADDRESS MODAL ==================== -->
+    <div class="modal-overlay" id="addressModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2><i class="fas fa-map-marker-alt"></i> Delivery Address</h2>
+                <button class="close-btn" id="closeAddressModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="addressForm" class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Full Name *</label>
+                        <input type="text" id="addrName" placeholder="Enter full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> Phone *</label>
+                        <div class="phone-input">
+                            <span class="code">+91</span>
+                            <input type="tel" id="addrPhone" placeholder="10-digit number" maxlength="10" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email *</label>
+                    <input type="email" id="addrEmail" placeholder="Enter email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-home"></i> Address *</label>
+                    <textarea id="addrLine" placeholder="House No., Building, Street, Area" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-city"></i> City *</label>
+                        <input type="text" id="addrCity" placeholder="City" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-map-pin"></i> Pincode *</label>
+                        <input type="text" id="addrPincode" placeholder="6-digit" maxlength="6" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-landmark"></i> State</label>
+                    <input type="text" id="addrState" placeholder="State (optional)">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelAddressBtn">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-check"></i> Save Address
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== SUCCESS MODAL ==================== -->
+    <div class="modal-overlay" id="successModal">
+        <div class="success-box">
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h2>Order Placed Successfully!</h2>
+            <p class="order-id">Order ID: <strong id="orderId">#ORD123456</strong></p>
+            <p class="success-msg">Thank you for shopping with FreshMart!</p>
+            
+            <div class="order-info">
+                <div class="info-row">
+                    <span>Amount Paid</span>
+                    <span id="paidAmount">₹0</span>
+                </div>
+                <div class="info-row">
+                    <span>Payment</span>
+                    <span id="paymentMethod">Razorpay</span>
+                </div>
+                <div class="info-row">
+                    <span>Delivery To</span>
+                    <span id="deliveryTo">-</span>
+                </div>
+            </div>
+            
+            <div class="success-btns">
+                <a href="order-tracking.html" class="btn-primary">
+                    <i class="fas fa-box"></i> Track Order
+                </a>
+                <a href="index.html" class="btn-secondary">
+                    <i class="fas fa-home"></i> Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TOAST ==================== -->
+    <div class="toast" id="toast">
+        <div class="toast-body">
+            <i class="fas fa-check-circle" id="toastIcon"></i>
+            <span id="toastMsg">Success!</span>
+        </div>
+        <button class="toast-close" id="toastClose">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- ==================== LOADING ==================== -->
+    <div class="loading hidden" id="loading">
+        <div class="loading-box">
+            <div class="spinner"></div>
+            <span id="loadingText">Processing...</span>
+        </div>
+    </div>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-leaf"></i>
+                <span>FreshMart</span>
+            </div>
+            <p>Fresh groceries delivered to your doorstep</p>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 FreshMart. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Cart JS -->
+    <script src="js/cart.js"></script>
+</body>
+</html>

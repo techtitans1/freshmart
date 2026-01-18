@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chocalates- FreshMart</title>
+    
+    <!-- Main Styles -->
+   <!-- <link rel="stylesheet" href="css/styles.css">-->
+    <!-- Category Page Styles -->
+    <link rel="stylesheet" href="css/category.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+
+    <!-- ==================== TOP NAVIGATION BAR ==================== -->
+    <nav class="category-navbar">
+        <!-- Back Button -->
+        <button class="back-btn" id="backBtn">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        
+        <!-- Category Title - CHANGE THIS FOR EACH CATEGORY -->
+        <div class="category-title-container">
+            <h1 class="category-title">Chocalates</h1>
+            <span class="product-count" id="productCount">0 products</span>
+        </div>
+        
+        <!-- Right Actions -->
+        <div class="nav-actions">
+            <!-- Search Toggle -->
+            <button class="action-btn" id="searchToggle">
+                <i class="fas fa-search"></i>
+            </button>
+            
+            <!-- Filter Button (Shows Popup) -->
+            <button class="action-btn" id="filterToggle">
+                <i class="fas fa-sliders-h"></i>
+                <span class="filter-badge hidden" id="filterBadge">0</span>
+            </button>
+            
+            <!-- Cart Button -->
+            <a href="cart.html" class="cart-btn-nav">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartCount">0</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ==================== SEARCH BAR (Hidden by default) ==================== -->
+    <div class="search-bar-container" id="searchBarContainer">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search in this category...">
+            <button class="clear-search" id="clearSearch">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== FILTER POPUP ==================== -->
+    <div class="filter-overlay" id="filterOverlay"></div>
+    <div class="filter-popup" id="filterPopup">
+        <div class="filter-popup-header">
+            <h3><i class="fas fa-filter"></i> Filters</h3>
+            <button class="filter-close-btn" id="filterCloseBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="filter-popup-body">
+            <!-- Price Range -->
+            <div class="filter-group">
+                <h4>Price Range</h4>
+                <div class="price-inputs">
+                    <input type="number" id="minPrice" placeholder="₹ Min" min="0">
+                    <span>to</span>
+                    <input type="number" id="maxPrice" placeholder="₹ Max" min="0">
+                </div>
+            </div>
+            
+            <!-- Discount Filter -->
+            <div class="filter-group">
+                <h4>Discount</h4>
+                <div class="filter-options">
+                    <label class="filter-checkbox">
+                        <input type="radio" name="discount" value="0" checked>
+                        <span class="checkmark-radio"></span>
+                        All
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="discount" value="10">
+                        <span class="checkmark-radio"></span>
+                        10% and above
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="discount" value="20">
+                        <span class="checkmark-radio"></span>
+                        20% and above
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="discount" value="30">
+                        <span class="checkmark-radio"></span>
+                        30% and above
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Sort By -->
+            <div class="filter-group">
+                <h4>Sort By</h4>
+                <div class="filter-options">
+                    <label class="filter-checkbox">
+                        <input type="radio" name="sort" value="relevance" checked>
+                        <span class="checkmark-radio"></span>
+                        Relevance
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="sort" value="price-low">
+                        <span class="checkmark-radio"></span>
+                        Price: Low to High
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="sort" value="price-high">
+                        <span class="checkmark-radio"></span>
+                        Price: High to Low
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="sort" value="discount">
+                        <span class="checkmark-radio"></span>
+                        Discount
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Availability -->
+            <div class="filter-group">
+                <h4>Availability</h4>
+                <label class="filter-checkbox">
+                    <input type="checkbox" id="inStockOnly" checked>
+                    <span class="checkmark-box"></span>
+                    In Stock Only
+                </label>
+            </div>
+        </div>
+        
+        <div class="filter-popup-footer">
+            <button class="filter-clear-btn" id="clearFiltersBtn">Clear All</button>
+            <button class="filter-apply-btn" id="applyFiltersBtn">Apply Filters</button>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <div class="category-container">
+        
+        <!-- ==================== LEFT SIDEBAR - SUB CATEGORIES ONLY ==================== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-title">Categories</div>
+            
+            <!-- SUB-CATEGORIES LIST - CHANGE FOR EACH CATEGORY -->
+            <ul class="subcategory-list" id="subcategoryList">
+                <li class="subcategory-item active" data-subcategory="all">
+                    <i class="fas fa-border-all"></i>
+                    <span>All Items</span>
+                    <span class="subcategory-count" id="count-all">0</span>
+                </li>
+                <li class="subcategory-item" data-subcategory="Milk Chocolates">
+                    <i class="fas fa-carrot"></i>
+                    <span>Milk Chocolates</span>
+                    <span class="subcategory-count" id="count-Milk Chocolates">0</span>
+                </li>
+                <li class="subcategory-item" data-subcategory="Dark Chocolates">
+                    <i class="fas fa-Soap"></i>
+                    <span>Dark Chocolates</span>
+                    <span class="subcategory-count" id="count-Dark Chocolates">0</span>
+                </li>
+                <li class="subcategory-item" data-subcategory="Wafer Chocolates">
+                    <i class="fas fa-seedling"></i>
+                    <span>Wafer Chocolates</span>
+                    <span class="subcategory-count" id="count-Wafer Chocolates">0</span>
+                </li>
+                <li class="subcategory-item" data-subcategory="Caramel & Filled Chocolates">
+                    <i class="fas fa-apple-alt"></i>
+                    <span>Caramel & Filled Chocolates</span>
+                    <span class="subcategory-count" id="count-Caramel & Filled Chocolates">0</span>
+                </li>
+                <li class="subcategory-item" data-subcategory="Kids Favourite Chocolates">
+                    <i class="fas fa-sun"></i>
+                    <span>Kids Favourite Chocolates</span>
+                    <span class="subcategory-count" id="count-Kids Favourite Chocolates">0</span>
+                </li>
+                <!--<li class="subcategory-item" data-subcategory="Quick Bites">
+                    <i class="fas fa-star"></i>
+                    <span>Quick Bites</span>
+                    <span class="subcategory-count" id="count-Quick Bites">0</span>
+                </li>
+                <li class="subcategory-item" data-subcategory="cut-fruits">
+                    <i class="fas fa-cut"></i>
+                    <span>Cut & Peeled</span>
+                    <span class="subcategory-count" id="count-cut-fruits">0</span>
+                </li>
+                <li class="subcategory-item" data-subcategory="organic">
+                    <i class="fas fa-heart"></i>
+                    <span>Organic</span>
+                    <span class="subcategory-count" id="count-organic">0</span>
+                </li>-->
+            </ul>
+        </aside>
+
+        <!-- ==================== PRODUCTS AREA ==================== -->
+        <main class="products-area">
+            
+            <!-- Products Grid -->
+            <div class="products-grid" id="productsGrid">
+                
+                <!-- ==================== PRODUCTS - ADD YOUR PRODUCTS HERE ==================== -->
+                
+                <!-- Product 1 -->
+                <div class="product-card" 
+                     data-id="2001" 
+                     data-name="Cadbury Dairy Milk"
+                     data-category="Chocalates" 
+                     data-subcategory="Milk Chocolates" 
+                     data-price="35" 
+                     data-original-price="45" 
+                     data-weight="500g" 
+                     data-discount="22" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/dairymilk.jpeg">
+                    <span class="product-badge">22% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/dairymilk.jpeg" alt="Cadbury Dairy Milk" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Cadbury Dairy Milk</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹35</span>
+                                <span class="original-price">₹45</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 2 -->
+                <div class="product-card" 
+                     data-id="2002" 
+                     data-name="Cadbury Silk"
+                     data-category="Chocalates" 
+                     data-subcategory="Milk Chocolates" 
+                     data-price="25" 
+                     data-original-price="30" 
+                     data-weight="250g" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/dairymilksilk.jpeg">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/dairymilksilk.jpeg" alt="Cadbury Silk" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Cadbury Silk</h3>
+                        <span class="product-weight">250g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹25</span>
+                                <span class="original-price">₹30</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 3 -->
+                <div class="product-card" 
+                     data-id="2003" 
+                     data-name="Amul Milk Chocolate"
+                     data-category="Chocalates" 
+                     data-subcategory="Milk Chocolates" 
+                     data-price="40" 
+                     data-original-price="50" 
+                     data-weight="1kg" 
+                     data-discount="20" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/amulmilkchocolate.jpeg">
+                    <span class="product-badge">20% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/amulmilkchocolate.jpeg" alt="Amul Milk Chocolate" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Amul Milk Chocolate</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹40</span>
+                                <span class="original-price">₹50</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 4 -->
+                <div class="product-card" 
+                     data-id="2004" 
+                     data-name="Nestlé Milkybar"
+                     data-category="Chocalates" 
+                     data-subcategory="Milk Chocolates" 
+                     data-price="35" 
+                     data-original-price="42" 
+                     data-weight="1kg" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/nestlemilkybar.jpeg">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/nestlemilkybar.jpeg" alt="Nestlé Milkybar" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Nestlé Milkybar</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹35</span>
+                                <span class="original-price">₹42</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 5 -->
+                <div class="product-card" 
+                     data-id="2005" 
+                     data-name="Galaxy Milk Chocolate"
+                     data-category="Chocalates" 
+                     data-subcategory="Milk Chocolates" 
+                     data-price="45" 
+                     data-original-price="55" 
+                     data-weight="500g" 
+                     data-discount="18" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/galaxymilkchocolate.jpeg">
+                    <span class="product-badge">18% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/galaxymilkchocolate.jpeg" alt="Galaxy Milk Chocolate" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Galaxy Milk Chocolate</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹45</span>
+                                <span class="original-price">₹55</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 6 -->
+                <div class="product-card" 
+                     data-id="2006" 
+                     data-name="Hersheys Milk Chocolate Bar"
+                     data-category="Chocalates" 
+                     data-subcategory="Milk Chocolates" 
+                     data-price="65" 
+                     data-original-price="80" 
+                     data-weight="500g" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/hersheysmilkchocolatebar.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/hersheysmilkchocolatebar.jpeg" alt="Hersheys Milk Chocolate Bar" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Hersheys Milk Chocolate Bar</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹65</span>
+                                <span class="original-price">₹80</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 7 -->
+                <div class="product-card" 
+                     data-id="2007" 
+                     data-name="Cadbury Bournville"
+                     data-category="Chocalates"
+                     data-subcategory="Dark Chocolates" 
+                     data-price="55" 
+                     data-original-price="70" 
+                     data-weight="500g" 
+                     data-discount="21" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/cadburybournville.jpeg">
+                    <span class="product-badge">21% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/cadburybournville.jpeg" alt="Cadbury Bournville" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Cadbury Bournville</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹55</span>
+                                <span class="original-price">₹70</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 8 -->
+                <div class="product-card" 
+                     data-id="2008" 
+                     data-name="Amul Dark Chocolate"
+                     data-category="Chocalates" 
+                     data-subcategory="Dark Chocolates" 
+                     data-price="25" 
+                     data-original-price="30" 
+                     data-weight="500g" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/amuldarkchocolate.jpeg">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/amuldarkchocolate.jpeg" alt="Amul Dark Chocolate" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Amul Dark Chocolate</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹25</span>
+                                <span class="original-price">₹30</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 9 -->
+                <div class="product-card" 
+                     data-id="2009" 
+                     data-name="Hersheys Dark Chocolate"
+                     data-category="Chocalates" 
+                     data-subcategory="Dark Chocolates" 
+                     data-price="15" 
+                     data-original-price="20" 
+                     data-weight="100g" 
+                     data-discount="25" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/hersheysdarkchocolate.jpeg">
+                    <span class="product-badge">25% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/hersheysdarkchocolate.jpeg" alt="Hersheys Dark Chocolate" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Hersheys Dark Chocolate</h3>
+                        <span class="product-weight">100g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹15</span>
+                                <span class="original-price">₹20</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 10 -->
+                <div class="product-card" 
+                     data-id="2010" 
+                     data-name="Nestlé KitKat"
+                     data-category="Chocalates" 
+                     data-subcategory="Wafer Chocolatess" 
+                     data-price="15" 
+                     data-original-price="18" 
+                     data-weight="100g" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/nestlekitkat.jpeg">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/nestlekitkat.jpeg" alt="Nestlé KitKat" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Nestlé KitKat</h3>
+                        <span class="product-weight">100g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹15</span>
+                                <span class="original-price">₹18</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 11 -->
+                <div class="product-card" 
+                     data-id="2011" 
+                     data-name="Nestlé Munch"
+                     data-category="Chocalates" 
+                     data-subcategory="Wafer Chocolates" 
+                     data-price="149" 
+                     data-original-price="199" 
+                     data-weight="1kg" 
+                     data-discount="25" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/nestlemunch.jpeg">
+                    <span class="product-badge">25% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/nestlemunch.jpeg" alt="Nestlé Munch" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Nestlé Munch</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹149</span>
+                                <span class="original-price">₹199</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 11 -->
+                <div class="product-card" 
+                     data-id="2012" 
+                     data-name="Amul Chocominis"
+                     data-category="Chocalates" 
+                     data-subcategory="Wafer Chocolates" 
+                     data-price="149" 
+                     data-original-price="199" 
+                     data-weight="1kg" 
+                     data-discount="25" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/amulchocominis.jpeg">
+                    <span class="product-badge">25% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/amulchocominis.jpeg" alt="Amul Chocominis" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Amul Chocominis</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹149</span>
+                                <span class="original-price">₹199</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 13 -->
+                <div class="product-card" 
+                     data-id="2013" 
+                     data-name="Tim Tams"
+                     data-category="Chocalates" 
+                     data-subcategory="Wafer Chocolates" 
+                     data-price="199" 
+                     data-original-price="250" 
+                     data-weight="1kg" 
+                     data-discount="20" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/timtams.jpeg">
+                    <span class="product-badge">20% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/timtams.jpeg" alt="Tim Tams" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Tim Tams</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹199</span>
+                                <span class="original-price">₹250</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 14 -->
+                <div class="product-card" 
+                     data-id="2014" 
+                     data-name="Mars Chocolate"
+                     data-category="Chocalates" 
+                     data-subcategory="Caramel & Filled Chocolates" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/marschocolate.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/marschocolate.jpeg" alt="Mars Chocolate" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Mars Chocolate</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" 
+                     data-id="2015" 
+                     data-name="Amul Truffles"
+                     data-category="Chocalates" 
+                     data-subcategory="Caramel & Filled Chocolates" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/amultruffles.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/amultruffles.jpeg" alt="Amul Truffles" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Amul Truffles</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" 
+                     data-id="2016" 
+                     data-name="Galaxy Filled Chocolates"
+                     data-category="Chocalates" 
+                     data-subcategory="Caramel & Filled Chocolates" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/galaxyfilledchocolates.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/galaxyfilledchocolates.jpeg" alt="Galaxy Filled Chocolates" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Galaxy Filled Chocolates</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" 
+                     data-id="2017" 
+                     data-name="Dairy Milk(Fruit&Nut)"
+                     data-category="Chocalates" 
+                     data-subcategory="Kids Favourite Chocolates" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/dairymilkfruit.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/dairymilkfruit.jpeg" alt="Dairy Milk(Fruit&Nut)" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Dairy Milk(Fruit&Nut)</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" 
+                     data-id="2018" 
+                     data-name="KitKat(large)"
+                     data-category="Chocalates" 
+                     data-subcategory="Kids Favourite Chocolates" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/kitkatlarge.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/kitkatlarge.jpeg" alt="KitKat(large)" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">KitKat(large)</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="product-card" 
+                     data-id="2019" 
+                     data-name="Munch"
+                     data-category="Chocalates" 
+                     data-subcategory="Kids Favourite Chocolates" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/munch.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/munch.jpeg" alt="Munch" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Munch</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="product-card" 
+                     data-id="2020" 
+                     data-name="Milkybar"
+                     data-category="Chocalates" 
+                     data-subcategory="Kids Favourite Chocolates" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/milkybar.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/milkybar.jpeg" alt="Milkybar" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Milkybar</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="product-card" 
+                     data-id="2021" 
+                     data-name="Kinder Joy"
+                     data-category="Chocalates" 
+                     data-subcategory="Kids Favourite Chocolates" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/kinderjoy.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/kinderjoy.jpeg" alt="Kinder Joy" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Kinder Joy</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" 
+                     data-id="2022" 
+                     data-name="5-Star"
+                     data-category="Chocalates" 
+                     data-subcategory="Kids Favourite Chocolates" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/5star.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/5star.jpeg" alt="5-Star" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">5-Star</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="product-card" 
+                     data-id="2023" 
+                     data-name="Gems"
+                     data-category="Chocalates" 
+                     data-subcategory="Kids Favourite Chocolates" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/chocolate/gems.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/chocolate/gems.jpeg" alt="Gems" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Gems</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+                <!--
+
+                <div class="product-card" 
+                     data-id="117" 
+                     data-name="Fairy Lights" 
+                     data-subcategory="Lights & Special Effects" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1547514701-42782101795e?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1547514701-42782101795e?w=400" alt="Fairy Lights" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Fairy Lights</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" 
+                     data-id="118" 
+                     data-name="LED Balloons" 
+                     data-subcategory="Lights & Special Effects" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1547514701-42782101795e?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1547514701-42782101795e?w=400" alt="LED Balloons" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">LED Balloons</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" 
+                     data-id="119" 
+                     data-name="Neon Party Lights" 
+                     data-subcategory="Lights & Special Effects" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1547514701-42782101795e?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1547514701-42782101795e?w=400" alt="Neon Party Lights" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Neon Party Lights</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" 
+                     data-id="120" 
+                     data-name="Birthday Theme kits" 
+                     data-subcategory="Theme-Based Party Kits" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1547514701-42782101795e?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1547514701-42782101795e?w=400" alt="Birthday Theme Kits" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Birthday Theme Kits</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" 
+                     data-id="121" 
+                     data-name="Anniversary Decoration kits" 
+                     data-subcategory="Theme-Based Party Kits" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1547514701-42782101795e?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1547514701-42782101795e?w=400" alt="Anniversary Decoration kits" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Anniversary Decoration kits</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" 
+                     data-id="122" 
+                     data-name="Baby Shower Decoration Kits" 
+                     data-subcategory="Theme-Based Party Kits" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1547514701-42782101795e?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1547514701-42782101795e?w=400" alt="Baby Shower Decoration Kits" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Baby Shower Decoration Kits</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" 
+                     data-id="123" 
+                     data-name="Bride-to-Be kits" 
+                     data-subcategory="Theme-Based Party Kits" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1547514701-42782101795e?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1547514701-42782101795e?w=400" alt="Bride-to-Be kits" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Bride-to-Be kits</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="product-card" 
+                     data-id="124" 
+                     data-name="Groom-to-Be Kits" 
+                     data-subcategory="Theme-Based Party Kits" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1547514701-42782101795e?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1547514701-42782101795e?w=400" alt="Groom-to-Be Kits" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Groom-to-Be Kits</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="product-card" 
+                     data-id="124" 
+                     data-name="Farewell party kits" 
+                     data-subcategory="Theme-Based Party Kits" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1547514701-42782101795e?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1547514701-42782101795e?w=400" alt="Farewell party kits" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Farewell party kits</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="product-card" 
+                     data-id="124" 
+                     data-name="Welcome Party Kits" 
+                     data-subcategory="Theme-Based Party Kits" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1547514701-42782101795e?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1547514701-42782101795e?w=400" alt="Welcome Party Kits" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Welcome Party Kits</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div> -->
+
+
+                <!-- ==================== END PRODUCTS ==================== -->
+                
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state hidden" id="emptyState">
+                <i class="fas fa-search"></i>
+                <h3>No products found</h3>
+                <p>Try adjusting your filters or search terms</p>
+                <button class="reset-btn" id="resetFiltersBtn">Reset Filters</button>
+            </div>
+            
+        </main>
+    </div>
+
+    <!-- ==================== MOBILE SUBCATEGORY BUTTON ==================== -->
+    <button class="mobile-category-btn" id="mobileCategoryBtn">
+        <i class="fas fa-list"></i>
+        Categories
+    </button>
+
+    <!-- ==================== SIDEBAR OVERLAY (Mobile) ==================== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ==================== TOAST NOTIFICATION ==================== -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <span id="toastMessage">Item added to cart!</span>
+        </div>
+    </div>
+
+    <!-- ==================== FLOATING CART BAR ==================== -->
+    <div class="floating-cart hidden" id="floatingCart">
+        <div class="floating-cart-info">
+            <span class="floating-cart-count" id="floatingCartCount">0 items</span>
+            <span class="floating-cart-total" id="floatingCartTotal">₹0</span>
+        </div>
+        <a href="cart.html" class="floating-cart-btn">
+            View Cart <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Category JS - Universal for all categories -->
+    <script src="js/category.js"></script>
+</body>
+</html>

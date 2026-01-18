@@ -1,0 +1,2300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baverages - FreshMart</title>
+    
+    <!-- Main Styles -->
+   <!-- <link rel="stylesheet" href="css/styles.css">-->
+    <!-- Category Page Styles -->
+    <link rel="stylesheet" href="css/category.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+
+    <!-- ==================== TOP NAVIGATION BAR ==================== -->
+    <nav class="category-navbar">
+        <!-- Back Button -->
+        <button class="back-btn" id="backBtn">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        
+        <!-- Category Title - CHANGE THIS FOR EACH CATEGORY -->
+        <div class="category-title-container">
+            <h1 class="category-title">Baverages</h1>
+            <span class="product-count" id="productCount">0 products</span>
+        </div>
+        
+        <!-- Right Actions -->
+        <div class="nav-actions">
+            <!-- Search Toggle -->
+            <button class="action-btn" id="searchToggle">
+                <i class="fas fa-search"></i>
+            </button>
+            
+            <!-- Filter Button (Shows Popup) -->
+            <button class="action-btn" id="filterToggle">
+                <i class="fas fa-sliders-h"></i>
+                <span class="filter-badge hidden" id="filterBadge">0</span>
+            </button>
+            
+            <!-- Cart Button -->
+            <a href="cart.html" class="cart-btn-nav">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartCount">0</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ==================== SEARCH BAR (Hidden by default) ==================== -->
+    <div class="search-bar-container" id="searchBarContainer">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search in this category...">
+            <button class="clear-search" id="clearSearch">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== FILTER POPUP ==================== -->
+    <div class="filter-overlay" id="filterOverlay"></div>
+    <div class="filter-popup" id="filterPopup">
+        <div class="filter-popup-header">
+            <h3><i class="fas fa-filter"></i> Filters</h3>
+            <button class="filter-close-btn" id="filterCloseBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="filter-popup-body">
+            <!-- Price Range -->
+            <div class="filter-group">
+                <h4>Price Range</h4>
+                <div class="price-inputs">
+                    <input type="number" id="minPrice" placeholder="₹ Min" min="0">
+                    <span>to</span>
+                    <input type="number" id="maxPrice" placeholder="₹ Max" min="0">
+                </div>
+            </div>
+            
+            <!-- Discount Filter -->
+            <div class="filter-group">
+                <h4>Discount</h4>
+                <div class="filter-options">
+                    <label class="filter-checkbox">
+                        <input type="radio" name="discount" value="0" checked>
+                        <span class="checkmark-radio"></span>
+                        All
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="discount" value="10">
+                        <span class="checkmark-radio"></span>
+                        10% and above
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="discount" value="20">
+                        <span class="checkmark-radio"></span>
+                        20% and above
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="discount" value="30">
+                        <span class="checkmark-radio"></span>
+                        30% and above
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Sort By -->
+            <div class="filter-group">
+                <h4>Sort By</h4>
+                <div class="filter-options">
+                    <label class="filter-checkbox">
+                        <input type="radio" name="sort" value="relevance" checked>
+                        <span class="checkmark-radio"></span>
+                        Relevance
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="sort" value="price-low">
+                        <span class="checkmark-radio"></span>
+                        Price: Low to High
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="sort" value="price-high">
+                        <span class="checkmark-radio"></span>
+                        Price: High to Low
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="sort" value="discount">
+                        <span class="checkmark-radio"></span>
+                        Discount
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Availability -->
+            <div class="filter-group">
+                <h4>Availability</h4>
+                <label class="filter-checkbox">
+                    <input type="checkbox" id="inStockOnly" checked>
+                    <span class="checkmark-box"></span>
+                    In Stock Only
+                </label>
+            </div>
+        </div>
+        
+        <div class="filter-popup-footer">
+            <button class="filter-clear-btn" id="clearFiltersBtn">Clear All</button>
+            <button class="filter-apply-btn" id="applyFiltersBtn">Apply Filters</button>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <div class="category-container">
+        
+        <!-- ==================== LEFT SIDEBAR - SUB CATEGORIES ONLY ==================== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-title">Categories</div>
+            
+            <!-- SUB-CATEGORIES LIST - CHANGE FOR EACH CATEGORY -->
+            <ul class="subcategory-list" id="subcategoryList">
+                <li class="subcategory-item active" data-subcategory="all">
+                    <i class="fas fa-border-all"></i>
+                    <span>All Items</span>
+                    <span class="subcategory-count" id="count-all">0</span>
+                </li>
+
+                <li class="subcategory-item" data-subcategory="Cool Drinks">
+                    <i class="fas fa-carrot"></i>
+                    <span>Cool Drinks</span>
+                    <span class="subcategory-count" id="count-Cool Drinks">0</span>
+                </li>
+
+                <li class="subcategory-item" data-subcategory="Milk Shakes">
+                    <i class="fas fa-leaf"></i>
+                    <span>Milk Shakes</span>
+                    <span class="subcategory-count" id="count-Milk Shakes">0</span>
+                </li>
+
+                <li class="subcategory-item" data-subcategory="Fruit Milk Shakes">
+                    <i class="fas fa-seedling"></i>
+                    <span>Fruit Milk Shakes</span>
+                    <span class="subcategory-count" id="count-Fruit Milk Shakes">0</span>
+                </li>
+
+                <li class="subcategory-item" data-subcategory="Chocolate Shakes">
+                    <i class="fas fa-apple-alt"></i>
+                    <span>Chocolate Shakes</span>
+                    <span class="subcategory-count" id="count-Chocolate Shakes">0</span>
+                </li>
+
+                <li class="subcategory-item" data-subcategory="Biscuit Shakes">
+                    <i class="fas fa-sun"></i>
+                    <span>Biscuit Shakes</span>
+                    <span class="subcategory-count" id="count-Biscuit Shakes">0</span>
+                </li>
+
+                <li class="subcategory-item" data-subcategory="Ice Cream Shakes">
+                    <i class="fas fa-star"></i>
+                    <span>Ice Cream Shakes</span>
+                    <span class="subcategory-count" id="count-Ice Cream Shakes">0</span>
+                </li>
+
+                <li class="subcategory-item" data-subcategory="Thick Shakes">
+                    <i class="fas fa-cut"></i>
+                    <span>Thick Shakes</span>
+                    <span class="subcategory-count" id="count-Thick Shakes">0</span>
+                </li>
+
+                <li class="subcategory-item" data-subcategory="Energy Drinks">
+                    <i class="fas fa-heart"></i>
+                    <span>Energy Drinks</span>
+                    <span class="subcategory-count" id="count-Energy Drinks">0</span>
+                </li>
+
+                <li class="subcategory-item" data-subcategory="Sodas">
+                    <i class="fas fa-heart"></i>
+                    <span>Sodas</span>
+                    <span class="subcategory-count" id="count-Sodas">0</span>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- ==================== PRODUCTS AREA ==================== -->
+        <main class="products-area">
+            
+            <!-- Products Grid -->
+            <div class="products-grid" id="productsGrid">
+                
+                <!-- ==================== PRODUCTS - ADD YOUR PRODUCTS HERE ==================== -->
+                
+                <!-- Product 1 -->
+                <div class="product-card" 
+                     data-id="401" 
+                     data-name="Thumbs up"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="35" 
+                     data-original-price="45" 
+                     data-weight="500gm" 
+                     data-discount="22" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/thumbsup.jpeg">
+                    <span class="product-badge">22% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/thumbsup.jpeg" alt="Thums up" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Thumbs up</h3>
+                        <span class="product-weight">500gm</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹35</span>
+                                <span class="original-price">₹45</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 2 -->
+                <div class="product-card" 
+                     data-id="402" 
+                     data-name="Sprite"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="25" 
+                     data-original-price="30" 
+                     data-weight="250ml" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/sprite.jpeg">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/sprite.jpeg" alt="Sprite" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Sprite</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹25</span>
+                                <span class="original-price">₹30</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 3 -->
+                <div class="product-card" 
+                     data-id="403" 
+                     data-name="Coco Cola"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="40" 
+                     data-original-price="50" 
+                     data-weight="250ml" 
+                     data-discount="20" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/cococola.jpeg">
+                    <span class="product-badge">20% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/cococola.jpeg" alt="Coco cola" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Coco Cola</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹40</span>
+                                <span class="original-price">₹50</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 4 -->
+                <div class="product-card" 
+                     data-id="404" 
+                     data-name="Mazza"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="35" 
+                     data-original-price="42" 
+                     data-weight="250ml" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/maaza.jpeg">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/maaza.jpeg" alt="Mazza" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Mazza</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹35</span>
+                                <span class="original-price">₹42</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 5 -->
+                <div class="product-card" 
+                     data-id="405" 
+                     data-name="Fanta"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="45" 
+                     data-original-price="55" 
+                     data-weight="250ml" 
+                     data-discount="18" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/fanta.jpeg">
+                    <span class="product-badge">18% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/fanta.jpeg" alt="Fanta" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Fanta</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹45</span>
+                                <span class="original-price">₹55</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 6 -->
+                <div class="product-card" 
+                     data-id="406" 
+                     data-name="Mirinda"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="65" 
+                     data-original-price="80" 
+                     data-weight="250ml" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/mirinda.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/mirinda.jpeg" alt="Mirinda" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Mirinda</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹65</span>
+                                <span class="original-price">₹80</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 7 -->
+                <div class="product-card" 
+                     data-id="407" 
+                     data-name="Apple Fizz"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="55" 
+                     data-original-price="70" 
+                     data-weight="250ml" 
+                     data-discount="21" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/applefizz.jpeg">
+                    <span class="product-badge">21% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/applefizz.jpeg" alt="Apple Fizz" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Apple Fizz</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹55</span>
+                                <span class="original-price">₹70</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 8 -->
+                <div class="product-card" 
+                     data-id="408" 
+                     data-name="Mountain Dew"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="25" 
+                     data-original-price="30" 
+                     data-weight="250ml" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/mountaindew.jpeg">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/mountaindew.jpeg" alt="Mountain Dew" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Mountain dew</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹25</span>
+                                <span class="original-price">₹30</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 9 -->
+                <div class="product-card" 
+                     data-id="409" 
+                     data-name="Red String"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="15" 
+                     data-original-price="20" 
+                     data-weight="250ml" 
+                     data-discount="25" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/string.jpeg">
+                    <span class="product-badge">25% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/string.jpeg" alt="Red String" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Red String</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹15</span>
+                                <span class="original-price">₹20</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 10 -->
+                <div class="product-card" 
+                     data-id="410" 
+                     data-name="Pulpy Orange"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="15" 
+                     data-original-price="18" 
+                     data-weight="250ml" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/pulpy.jpeg">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/pulpy.jpeg" alt="Pulpy Orannge" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Pulpy Orange</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹15</span>
+                                <span class="original-price">₹18</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 11 -->
+                <div class="product-card" 
+                     data-id="411" 
+                     data-name="Pepsi"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="149" 
+                     data-original-price="199" 
+                     data-weight="1kg" 
+                     data-discount="25" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/pepsi.jpeg">
+                    <span class="product-badge">25% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/pepsi.jpeg" alt="Pepsi" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Pepsi</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹149</span>
+                                <span class="original-price">₹199</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 12 -->
+                <div class="product-card" 
+                     data-id="412" 
+                     data-name="7 up"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="49" 
+                     data-original-price="60" 
+                     data-weight="1 dozen" 
+                     data-discount="18" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/7up(large).jpeg">
+                    <span class="product-badge">18% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/7up(large).jpeg" alt="7 up" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">7 up</h3>
+                        <span class="product-weight">1 dozen</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹49</span>
+                                <span class="original-price">₹60</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 13 -->
+                <div class="product-card" 
+                     data-id="413" 
+                     data-name="predator"
+                     data-category="Baverages" 
+                     data-subcategory="Energy Drinks" 
+                     data-price="199" 
+                     data-original-price="250" 
+                     data-weight="1kg" 
+                     data-discount="20" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/predator.jpeg">
+                    <span class="product-badge">20% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/predator.jpeg" alt="predator " class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">predator</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹199</span>
+                                <span class="original-price">₹250</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 14 -->
+                <div class="product-card" 
+                     data-id="414" 
+                     data-name="Limca"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/limca(large).jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/limca(large).jpeg" alt="Limca" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Limca</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 15 -->
+                <div class="product-card" 
+                     data-id="415" 
+                     data-name="Kinley Soda"
+                     data-category="Baverages" 
+                     data-subcategory="Sodas" 
+                     data-price="79" 
+                     data-original-price="95" 
+                     data-weight="500g" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/kinleysode.jpeg">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/kinleysode.jpeg" alt="Kinley Soda" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Kinley Soda</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹79</span>
+                                <span class="original-price">₹95</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 16 -->
+                <div class="product-card" 
+                     data-id="416" 
+                     data-name="Bislery Soda"
+                     data-category="Baverages" 
+                     data-subcategory="Sodas" 
+                     data-price="149" 
+                     data-original-price="180" 
+                     data-weight="1pc" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/bislerysoda.jpeg">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/bislerysoda.jpeg" alt="Bislery Soda" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Bislery Soda</h3>
+                        <span class="product-weight">1pc</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹149</span>
+                                <span class="original-price">₹180</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 17 -->
+                <div class="product-card" 
+                     data-id="417" 
+                     data-name="Sugar Free Thumbs up"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks"
+                     data-price="199" 
+                     data-original-price="250" 
+                     data-weight="2pcs" 
+                     data-discount="20" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/sugarfreethumbsup.jpeg">
+                    <span class="product-badge">20% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/sugarfreethumbsup.jpeg" alt="Sugar Free Thumbs up" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Sugar Free Thumbs up</h3>
+                        <span class="product-weight">2pcs</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹199</span>
+                                <span class="original-price">₹250</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 18 -->
+                <div class="product-card" 
+                     data-id="418" 
+                     data-name="Zero Sugar Sprite"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="3pcs" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/zerosugarsprite.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/zerosugarsprite.jpeg" alt="Zero Sugar Sprite" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Zero Sugar Sprite</h3>
+                        <span class="product-weight">3pcs</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 19 -->
+                <div class="product-card" 
+                     data-id="419" 
+                     data-name="Diet Coke"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="45" 
+                     data-original-price="55" 
+                     data-weight="1pc" 
+                     data-discount="18" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/dietcoke.jpeg">
+                    <span class="product-badge">18% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/dietcoke.jpeg" alt="Diet Coke" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Diet Coke</h3>
+                        <span class="product-weight">1pc</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹45</span>
+                                <span class="original-price">₹55</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 20 -->
+                <div class="product-card" 
+                     data-id="420" 
+                     data-name="Red Bull"
+                     data-category="Baverages" 
+                     data-subcategory="Energy Drinks" 
+                     data-price="129" 
+                     data-original-price="160" 
+                     data-weight="500g" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/redbull.jpeg">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/redbull.jpeg" alt="Red Bull" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Red Bull</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹129</span>
+                                <span class="original-price">₹160</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 21 -->
+                <div class="product-card" 
+                     data-id="421" 
+                     data-name="Monster"
+                     data-category="Baverages" 
+                     data-subcategory="Energy Drinks" 
+                     data-price="99" 
+                     data-original-price="120" 
+                     data-weight="500g" 
+                     data-discount="18" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/monster.jpeg">
+                    <span class="product-badge">18% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/monster.jpeg" alt="Monster" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Monster</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹99</span>
+                                <span class="original-price">₹120</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 22 -->
+                <div class="product-card" 
+                     data-id="422" 
+                     data-name="Thumbs up (Pack of 24)"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="55" 
+                     data-original-price="70" 
+                     data-weight="500g" 
+                     data-discount="21" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/thumbsup(24).jpeg">
+                    <span class="product-badge">21% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/thumbsup(24).jpeg" alt="Thumbs up (Pack of 24)" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Thumbs up (Pack of 24)</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹55</span>
+                                <span class="original-price">₹70</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 23 -->
+                <div class="product-card" 
+                     data-id="423" 
+                     data-name="Sprite (Pack of 24)"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="40" 
+                     data-original-price="50" 
+                     data-weight="250g" 
+                     data-discount="20" 
+                     data-stock="true"
+                     data-image="assests/images/baverages/sprite(24).jpeg">
+                    <span class="product-badge">20% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/baverages/sprite(24).jpeg" alt="Sprite (Pack of 24)" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Sprite (Pack of 24)</h3>
+                        <span class="product-weight">250g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹40</span>
+                                <span class="original-price">₹50</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 24 -->
+                <div class="product-card" 
+                     data-id="424" 
+                     data-name="Coco Cola (Pack of 24)"
+                     data-category="Baverages"
+                     data-subcategory="Cool Drinks" 
+                     data-price="35" 
+                     data-original-price="42" 
+                     data-weight="500g" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?w=400" alt="Coco Cola (Pack of 24)" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Coco Cola (Pack of 24)</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹35</span>
+                                <span class="original-price">₹42</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 25-->
+                <div class="product-card" 
+                     data-id="425" 
+                     data-name="Pepsi(Pack of 9)"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="35" 
+                     data-original-price="45" 
+                     data-weight="250ml" 
+                     data-discount="22" 
+                     data-stock="true"
+                     data-image="assests/images/image.jpeg">
+                    <span class="product-badge">22% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/image.jpeg" alt="Fresh Tomatoes" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Pepsi(Pack of 9)</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹35</span>
+                                <span class="original-price">₹45</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 26 -->
+                <div class="product-card" 
+                     data-id="426" 
+                     data-name="Coco Cola(pack of 9)"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="25" 
+                     data-original-price="30" 
+                     data-weight="2.25ltr" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400" alt="Coco Cola(pack of 9)" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Coco Cola(pack of 9)</h3>
+                        <span class="product-weight">2.25ltr</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹25</span>
+                                <span class="original-price">₹30</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 27 -->
+                <div class="product-card" 
+                     data-id="427" 
+                     data-name="Sprite(Pack of 9)"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="40" 
+                     data-original-price="50" 
+                     data-weight="2.25ltr" 
+                     data-discount="20" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1518977676601-b53f82ber5?w=400">
+                    <span class="product-badge">20% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1518977676601-b53f82ber5?w=400" alt="Sprite(Pack of 9)" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Sprite(Pack of 9)</h3>
+                        <span class="product-weight">2.25ltr</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹40</span>
+                                <span class="original-price">₹50</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 28 -->
+                <div class="product-card" 
+                     data-id="428" 
+                     data-name="Mazza(Pack of 9)"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="35" 
+                     data-original-price="42" 
+                     data-weight="2.25ltr" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=400" alt="Mazza(Pack of 9)" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Mazza(Pack of 9)</h3>
+                        <span class="product-weight">2.25ltr</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹35</span>
+                                <span class="original-price">₹42</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 29 -->
+                <div class="product-card" 
+                     data-id="429" 
+                     data-name="Fanta(Pack of 9)"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="45" 
+                     data-original-price="55" 
+                     data-weight="2.25ltr" 
+                     data-discount="18" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400">
+                    <span class="product-badge">18% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400" alt="Fanta(Pack of 9)" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Fanta(Pack of 9)</h3>
+                        <span class="product-weight">2.25ltr</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹45</span>
+                                <span class="original-price">₹55</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 30 -->
+                <div class="product-card" 
+                     data-id="430" 
+                     data-name="Mirinda(Pack of 9)"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="65" 
+                     data-original-price="80" 
+                     data-weight="2.25ltr" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400" alt="Mirinda(Pack of 9)" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Mirinda(Pack of 9)</h3>
+                        <span class="product-weight">2.25ltr</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹65</span>
+                                <span class="original-price">₹80</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 31 -->
+                <div class="product-card" 
+                     data-id="431" 
+                     data-name="7 up(Pack of 9)"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="55" 
+                     data-original-price="70" 
+                     data-weight="2.25ltr" 
+                     data-discount="21" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400">
+                    <span class="product-badge">21% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400" alt="7 up(Pack of 9)" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">7 up (Pack of 9)</h3>
+                        <span class="product-weight">2.25ltr</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹55</span>
+                                <span class="original-price">₹70</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 32 -->
+                <div class="product-card" 
+                     data-id="432" 
+                     data-name="Mountain Dew(Pack of 9)"
+                     data-category="Baverages" 
+                     data-subcategory="Cool Drinks" 
+                     data-price="25" 
+                     data-original-price="30" 
+                     data-weight="2.25ltr" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?w=400" alt="Mountain Dew(Pack of 9)" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Mountain dew(Pack of 9)</h3>
+                        <span class="product-weight">2.25ltr</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹25</span>
+                                <span class="original-price">₹30</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 33 -->
+                <div class="product-card" 
+                     data-id="433" 
+                     data-name="Chocolate Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Milk Shakes" 
+                     data-price="15" 
+                     data-original-price="20" 
+                     data-weight="250ml" 
+                     data-discount="25" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1526318472351-c75fcf070305?w=400">
+                    <span class="product-badge">25% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1526318472351-c75fcf070305?w=400" alt="Chocolate Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Chocolate Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹15</span>
+                                <span class="original-price">₹20</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 34 -->
+                <div class="product-card" 
+                     data-id="434" 
+                     data-name="Vanilla Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Milk Shakes" 
+                     data-price="15" 
+                     data-original-price="18" 
+                     data-weight="250ml" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?w=400" alt="Vanilla Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Vanilla Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹15</span>
+                                <span class="original-price">₹18</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 35 -->
+                <div class="product-card" 
+                     data-id="435" 
+                     data-name="Strawberry Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Milk Shakes" 
+                     data-price="149" 
+                     data-original-price="199" 
+                     data-weight="1kg" 
+                     data-discount="25" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400">
+                    <span class="product-badge">25% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400" alt="Strawberry Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Strawberry Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹149</span>
+                                <span class="original-price">₹199</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 36 -->
+                <div class="product-card" 
+                     data-id="436" 
+                     data-name="Butterscotch Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Milk Shakes" 
+                     data-price="49" 
+                     data-original-price="60" 
+                     data-weight="1 dozen" 
+                     data-discount="18" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400">
+                    <span class="product-badge">18% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400" alt="Butterscotch Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Butterscotch Shake</h3>
+                        <span class="product-weight">1 dozen</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹49</span>
+                                <span class="original-price">₹60</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 37 -->
+                <div class="product-card" 
+                     data-id="437" 
+                     data-name="Caramel Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Milk Shakes" 
+                     data-price="199" 
+                     data-original-price="250" 
+                     data-weight="1kg" 
+                     data-discount="20" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1553279768-865429fa0078?w=400">
+                    <span class="product-badge">20% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1553279768-865429fa0078?w=400" alt="Caramel Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Caramel Shake</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹199</span>
+                                <span class="original-price">₹250</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 38 -->
+                <div class="product-card" 
+                     data-id="438" 
+                     data-name="Banana shake"
+                     data-category="Baverages" 
+                     data-subcategory="Fruit Milk Shakes" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1547514701-42782101795e?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1547514701-42782101795e?w=400" alt="Banana shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Banana shake</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 39 -->
+                <div class="product-card" 
+                     data-id="439" 
+                     data-name="Mango Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Fruit Milk Shakes" 
+                     data-price="79" 
+                     data-original-price="95" 
+                     data-weight="500g" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400" alt="Mango Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Mango Shake</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹79</span>
+                                <span class="original-price">₹95</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 40 -->
+                <div class="product-card" 
+                     data-id="440" 
+                     data-name="Apple Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Fruit Milk Shakes" 
+                     data-price="149" 
+                     data-original-price="180" 
+                     data-weight="1pc" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1527325678964-54921661f888?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1527325678964-54921661f888?w=400" alt="Apple Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Apple Shake</h3>
+                        <span class="product-weight">1pc</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹149</span>
+                                <span class="original-price">₹180</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 41 -->
+                <div class="product-card" 
+                     data-id="441" 
+                     data-name="Pine Apple Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Fruit Milk Shakes"
+                     data-price="199" 
+                     data-original-price="250" 
+                     data-weight="2pcs" 
+                     data-discount="20" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=400">
+                    <span class="product-badge">20% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=400" alt="Pine Apple Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Pine Apple Shake</h3>
+                        <span class="product-weight">2pcs</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹199</span>
+                                <span class="original-price">₹250</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 42 -->
+                <div class="product-card" 
+                     data-id="442" 
+                     data-name="Mixed Fruit Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Fruit Milk Shakes" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="3pcs" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1585059895524-72359e06133a?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1585059895524-72359e06133a?w=400" alt="Mixed Fruit Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Mixed Fruit Shake</h3>
+                        <span class="product-weight">3pcs</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 43 -->
+                <div class="product-card" 
+                     data-id="443" 
+                     data-name="Pomegranate Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Fruit Milk Shakes" 
+                     data-price="45" 
+                     data-original-price="55" 
+                     data-weight="1pc" 
+                     data-discount="18" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400">
+                    <span class="product-badge">18% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400" alt="Pomegranate Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Pomegranate Shake</h3>
+                        <span class="product-weight">1pc</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹45</span>
+                                <span class="original-price">₹55</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 44 -->
+                <div class="product-card" 
+                     data-id="444" 
+                     data-name="Chocolate Fudge"
+                     data-category="Baverages" 
+                     data-subcategory="Chocolate Shakes" 
+                     data-price="129" 
+                     data-original-price="160" 
+                     data-weight="500g" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1541344999736-4a85
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1541344999736-4a85983e92c3?w=400" alt="Chocolate Fudge" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Chocolate Fudge</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹129</span>
+                                <span class="original-price">₹160</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 45 -->
+                <div class="product-card" 
+                     data-id="445" 
+                     data-name="Chocolate Brownie"
+                     data-category="Baverages" 
+                     data-subcategory="Chocolate Shakes" 
+                     data-price="99" 
+                     data-original-price="120" 
+                     data-weight="500g" 
+                     data-discount="18" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400">
+                    <span class="product-badge">18% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400" alt="Chocolate Brownie" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Chocolate Brownie</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹99</span>
+                                <span class="original-price">₹120</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 46 -->
+                <div class="product-card" 
+                     data-id="446" 
+                     data-name="Chocolate Hazelnut"
+                     data-category="Baverages" 
+                     data-subcategory="Chocolate Shakes" 
+                     data-price="55" 
+                     data-original-price="70" 
+                     data-weight="500g" 
+                     data-discount="21" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400">
+                    <span class="product-badge">21% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.cophoto-1592924357228-91a4daadcfea?wm/=400" alt="Chocolate Hazelnut" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Chocolate Hazelnut</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹55</span>
+                                <span class="original-price">₹70</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>       
+                </div>
+
+                <!-- Product 47 -->
+                <div class="product-card" 
+                     data-id="447" 
+                     data-name="Dark Chocolate"
+                     data-category="Baverages" 
+                     data-subcategory="Chocolate Shakes" 
+                     data-price="40" 
+                     data-original-price="50" 
+                     data-weight="250g" 
+                     data-discount="20" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1574316071802-0d684efa7bf5?w=400">
+                    <span class="product-badge">20% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1574316071802-0d684efa7bf5?w=400" alt="Dark Chocolate" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Dark Chocolate</h3>
+                        <span class="product-weight">250g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹40</span>
+                                <span class="original-price">₹50</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 48 -->
+                <div class="product-card" 
+                     data-id="448" 
+                     data-name="Oreo Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Biscuit Shakes" 
+                     data-price="35" 
+                     data-original-price="42" 
+                     data-weight="500g" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?w=400" alt="Oreo Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Oreo Shake</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹35</span>
+                                <span class="original-price">₹42</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 49 -->
+                <div class="product-card" 
+                     data-id="449" 
+                     data-name="Kit Kat Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Biscuit Shakes" 
+                     data-price="35" 
+                     data-original-price="45" 
+                     data-weight="250ml" 
+                     data-discount="22" 
+                     data-stock="true"
+                     data-image="assests/images/image.jpeg">
+                    <span class="product-badge">22% OFF</span>
+                    <div class="product-image-container">
+                        <img src="assests/images/image.jpeg" alt="Fresh Tomatoes" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">"Kit Kat Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹35</span>
+                                <span class="original-price">₹45</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 50 -->
+                <div class="product-card" 
+                     data-id="450" 
+                     data-name="Bourbon Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Biscuit Shakes" 
+                     data-price="25" 
+                     data-original-price="30" 
+                     data-weight="250ml" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400" alt="Bourbon Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Bourbon Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹25</span>
+                                <span class="original-price">₹30</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 51 -->
+                <div class="product-card" 
+                     data-id="451" 
+                     data-name="Almond Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Dry Fruit Shakes" 
+                     data-price="40" 
+                     data-original-price="50" 
+                     data-weight="250ml" 
+                     data-discount="20" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1518977676601-b53f82ber5?w=400">
+                    <span class="product-badge">20% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1518977676601-b53f82ber5?w=400" alt="Almond Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">"Almond Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹40</span>
+                                <span class="original-price">₹50</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 52 -->
+                <div class="product-card" 
+                     data-id="452" 
+                     data-name="Cashew Nut Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Dry Fruit Shakes" 
+                     data-price="35" 
+                     data-original-price="42" 
+                     data-weight="250ml" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=400" alt="Cashew Nut Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Cashew Nut Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹35</span>
+                                <span class="original-price">₹42</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 53 -->
+                <div class="product-card" 
+                     data-id="453" 
+                     data-name="Dry Fruit Mix Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Dry Fruit Shakes" 
+                     data-price="45" 
+                     data-original-price="55" 
+                     data-weight="250ml" 
+                     data-discount="18" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400">
+                    <span class="product-badge">18% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400" alt="Dry Fruit Mix Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Dry Fruit Mix Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹45</span>
+                                <span class="original-price">₹55</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 54 -->
+                <div class="product-card" 
+                     data-id="454" 
+                     data-name="Badam Milk Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Dry Fruit Shakes" 
+                     data-price="65" 
+                     data-original-price="80" 
+                     data-weight="250ml" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400" alt="Badam Milk Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Badam Milk Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹65</span>
+                                <span class="original-price">₹80</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 55 -->
+                <div class="product-card" 
+                     data-id="455" 
+                     data-name="Kesar Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Dry Fruit Shakes" 
+                     data-price="55" 
+                     data-original-price="70" 
+                     data-weight="250ml" 
+                     data-discount="21" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400">
+                    <span class="product-badge">21% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400" alt="Kesar Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Kesar Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹55</span>
+                                <span class="original-price">₹70</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 56 -->
+                <div class="product-card" 
+                     data-id="456" 
+                     data-name="Kesar Badam Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Dry Fruit Shakes" 
+                     data-price="25" 
+                     data-original-price="30" 
+                     data-weight="250ml" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?w=400" alt= "Kesar Badam Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Kesar Badam Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹25</span>
+                                <span class="original-price">₹30</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 57 -->
+                <div class="product-card" 
+                     data-id="457" 
+                     data-name="Vanilla Ice Cream Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Ice Cream Shakes" 
+                     data-price="15" 
+                     data-original-price="20" 
+                     data-weight="250ml" 
+                     data-discount="25" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1526318472351-c75fcf070305?w=400">
+                    <span class="product-badge">25% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1526318472351-c75fcf070305?w=400" alt="Vanilla Ice Cream Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Vanilla Ice Cream Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹15</span>
+                                <span class="original-price">₹20</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 58 -->
+                <div class="product-card" 
+                     data-id="458" 
+                     data-name="Chocolate Ice Cream Shake" 
+                     data-category="Baverages"
+                     data-subcategory="Ice Cream Shakes" 
+                     data-price="15" 
+                     data-original-price="18" 
+                     data-weight="250ml" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?w=400" alt="Chocolate Ice Cream Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Chocolate Ice Cream Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹15</span>
+                                <span class="original-price">₹18</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 59 -->
+                <div class="product-card" 
+                     data-id="459" 
+                     data-name="Strawberry Ice Cream Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Ice Cream Shakes" 
+                     data-price="149" 
+                     data-original-price="199" 
+                     data-weight="1kg" 
+                     data-discount="25" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400">
+                    <span class="product-badge">25% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400" alt="Strawberry Ice Cream Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Strawberry Ice Cream Shake</h3>
+                        <span class="product-weight">250ml</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹149</span>
+                                <span class="original-price">₹199</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 60 -->
+                <div class="product-card" 
+                     data-id="460" 
+                     data-name="Falooda Ice Cream Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Ice Cream Shakes" 
+                     data-price="49" 
+                     data-original-price="60" 
+                     data-weight="1 dozen" 
+                     data-discount="18" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400">
+                    <span class="product-badge">18% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400" alt="Falooda Ice Cream Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Falooda Ice Cream Shake</h3>
+                        <span class="product-weight">1 dozen</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹49</span>
+                                <span class="original-price">₹60</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 61 -->
+                <div class="product-card" 
+                     data-id="461" 
+                     data-name="Vanilla Thick Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Thick Shakes" 
+                     data-price="199" 
+                     data-original-price="250" 
+                     data-weight="1kg" 
+                     data-discount="20" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1553279768-865429fa0078?w=400">
+                    <span class="product-badge">20% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1553279768-865429fa0078?w=400" alt="Vanilla Thick Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Vanilla Thick Shake</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹199</span>
+                                <span class="original-price">₹250</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 62 -->
+                <div class="product-card" 
+                     data-id="462" 
+                     data-name="Chocolate Thick Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Thick Shakes" 
+                     data-price="89" 
+                     data-original-price="110" 
+                     data-weight="1kg" 
+                     data-discount="19" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1547514701-42782101795e?w=400">
+                    <span class="product-badge">19% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1547514701-42782101795e?w=400" alt="Chocolate Thick Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Chocolate Thick Shake</h3>
+                        <span class="product-weight">1kg</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹89</span>
+                                <span class="original-price">₹110</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 63 -->
+                <div class="product-card" 
+                     data-id="463" 
+                     data-name="Caramel Thick Shake"
+                     data-category="Baverages" 
+                     data-subcategory="Thick Shakes" 
+                     data-price="79" 
+                     data-original-price="95" 
+                     data-weight="500g" 
+                     data-discount="17" 
+                     data-stock="true"
+                     data-image="https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400">
+                    <span class="product-badge">17% OFF</span>
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400" alt="Caramel Thick Shake" class="product-image" loading="lazy">
+                        <button class="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Caramel Thick Shake</h3>
+                        <span class="product-weight">500g</span>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                <span class="current-price">₹79</span>
+                                <span class="original-price">₹95</span>
+                            </div>
+                            <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- =================== END PRODUCTS ==================== -->
+                
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state hidden" id="emptyState">
+                <i class="fas fa-search"></i>
+                <h3>No products found</h3>
+                <p>Try adjusting your filters or search terms</p>
+                <button class="reset-btn" id="resetFiltersBtn">Reset Filters</button>
+            </div>
+            
+        </main>
+    </div>
+
+    <!-- ==================== MOBILE SUBCATEGORY BUTTON ==================== -->
+    <button class="mobile-category-btn" id="mobileCategoryBtn">
+        <i class="fas fa-list"></i>
+        Categories
+    </button>
+
+    <!-- ==================== SIDEBAR OVERLAY (Mobile) ==================== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ==================== TOAST NOTIFICATION ==================== -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <span id="toastMessage">Item added to cart!</span>
+        </div>
+    </div>
+
+    <!-- ==================== FLOATING CART BAR ==================== -->
+    <div class="floating-cart hidden" id="floatingCart">
+        <div class="floating-cart-info">
+            <span class="floating-cart-count" id="floatingCartCount">0 items</span>
+            <span class="floating-cart-total" id="floatingCartTotal">₹0</span>
+        </div>
+        <a href="cart.html" class="floating-cart-btn">
+            View Cart <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Category JS - Universal for all categories -->
+    <script src="js/category.js"></script>
+</body>
+</html>

@@ -1,0 +1,1366 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>FreshMart - Your Online Grocery Store</title>
+        <!-- Link to external CSS file -->
+        <link rel="stylesheet" href="css/styles.css">
+        <link rel="stylesheet" href="css/category.css">
+
+
+        <!-- Font Awesome for icons -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+        <!-- Add these script tags before your main JS file -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    </head>
+    <body>
+        <!-- ==================== NAVIGATION BAR ==================== -->
+        <nav class="navbar" id="navbar">
+            <!-- Left Section: Logo and Site Name -->
+            <div class="nav-left">
+                <!-- Site Logo and Name -->
+                <div class="logo">
+                    <i class="fas fa-leaf logo-icon"></i>
+                    <span class="site-name">FreshMart</span>
+                </div>
+                
+                <!-- Location Selector Button -->
+                <div class="location-selector" id="locationBtn">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div class="location-text">
+                        <span class="deliver-to">Deliver to</span>
+                        <span class="location-name" id="currentLocation">Select Location</span>
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+
+            <!-- Center Section: Search Bar -->
+            <div class="nav-center">
+                <!-- Search Bar Container -->
+                <div class="search-container">
+                    <!-- Recent Searches Scrolling Text -->
+                    <div class="search-suggestions" id="searchSuggestions">
+                        <span class="scrolling-text" id="scrollingText"></span>
+                    </div>
+                    
+                    <!-- Search Input Field -->
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search for groceries...">
+                    
+                    <!-- Voice Search Button -->
+                    <button class="voice-btn" id="voiceBtn" title="Voice Search">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    
+                    <!-- Language Translation Button -->
+                    <button class="translate-btn" id="translateBtn" title="Change Language">
+                        <i class="fas fa-language"></i>
+                    </button>
+                    
+                    <!-- Search Submit Button -->
+                    <button class="search-btn" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                
+                <!-- Language Dropdown Menu -->
+                <div class="language-dropdown" id="languageDropdown">
+                    <div class="language-option" data-lang="en">English</div>
+                    <div class="language-option" data-lang="hi">हिंदी (Hindi)</div>
+                    <div class="language-option" data-lang="te">తెలుగు (Telugu)</div>
+                    <div class="language-option" data-lang="ta">தமிழ் (Tamil)</div>
+                    <div class="language-option" data-lang="es">Español (Spanish)</div>
+                    <div class="language-option" data-lang="fr">Français (French)</div>
+                </div>
+            </div>
+
+            <!-- Right Section: Auth, Profile, Cart -->
+                    <div class="nav-right">
+
+                    <!-- Login / Signup -->
+                    <a href="login.html">
+                        <button class="auth-btn" id="authBtn">
+                            <i class="fas fa-user"></i>
+                            <span>Login/Signup</span>
+                        </button>
+                    </a>
+
+                    <!-- Profile -->
+                    <a href="profile.html">
+                        <button class="profile-btn hidden" id="profileBtn">
+                            <i class="fas fa-user-circle"></i>
+                        </button>
+                    </a>
+
+                    <!-- Cart -->
+                    <a href="cart.html">
+                        <button class="cart-btn" onclick="redirectCart()">
+                            <i class="fas fa-shopping-cart"></i>
+                            Cart
+                            <span class="cart-count" id="cartCount">0</span>
+                        </button>
+
+                    </a>
+
+                </div>
+
+        </nav>
+
+        <!-- ==================== LOCATION MODAL ==================== -->
+        <div class="modal" id="locationModal">
+            <div class="modal-content location-modal-content">
+                <!-- Modal Close Button -->
+                <button class="modal-close" id="closeLocationModal">&times;</button>
+                
+                <h2><i class="fas fa-map-marker-alt"></i> Select Delivery Location</h2>
+                
+                <!-- Detect Current Location Button -->
+                <button class="detect-location-btn" id="detectLocationBtn">
+                    <i class="fas fa-crosshairs"></i>
+                    Detect my location
+                </button>
+                
+                <div class="divider"><span>OR</span></div>
+                
+                <!-- Manual Address Input -->
+                <div class="form-group">
+                    <label for="manualAddress">Enter your address</label>
+                    <input type="text" id="manualAddress" placeholder="Enter your full address">
+                </div>
+                
+                <!-- Pincode Input -->
+                <div class="form-group">
+                    <label for="pincode">Pincode</label>
+                    <input type="text" id="pincode" placeholder="Enter pincode" maxlength="6">
+                </div>
+                
+                <!-- Save Location Button -->
+                <button class="primary-btn" id="saveLocationBtn">Save Location</button>
+            </div>
+        </div>
+
+    
+                
+            
+
+        <!-- ==================== MAIN CONTENT ==================== -->
+        <main class="main-content">
+            <!-- ==================== HERO SECTION ==================== -->
+            <section class="hero-section" id="heroSection">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1>Fresh Groceries <span class="highlight">Delivered</span> to Your Doorstep</h1>
+                        <p>Get farm-fresh vegetables, fruits, dairy products, and daily essentials delivered within hours. Quality guaranteed!</p>
+                        
+                        <!-- Hero Features -->
+                        <div class="hero-features">
+                            <div class="feature">
+                                <i class="fas fa-truck"></i>
+                                <span>Free Delivery</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-clock"></i>
+                                <span>2 Hour Delivery</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-leaf"></i>
+                                <span>100% Fresh</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Hero CTA Button -->
+                        <button class="hero-cta" id="shopNowBtn">
+                            Shop Now <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Hero Image -->
+                    <div class="hero-image">
+                        <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=600" alt="Fresh Groceries">
+                        
+                        <!-- Floating Elements -->
+                        <div class="floating-card card-1">
+                            <i class="fas fa-apple-alt"></i>
+                            <span>Fresh Fruits</span>
+                        </div>
+                        <div class="floating-card card-2">
+                            <i class="fas fa-carrot"></i>
+                            <span>Vegetables</span>
+                        </div>
+                        <div class="floating-card card-3">
+                            <i class="fas fa-cheese"></i>
+                            <span>Dairy</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hero Wave Decoration -->
+                <div class="hero-wave">
+                    <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="white"/>
+                    </svg>
+                </div>
+            </section>
+
+            <!-- ==================== CATEGORIES SECTION ==================== -->
+        <section class="categories-section" id="categoriesSection">
+            <div class="section-header">
+                <h2>Shop by Category</h2>
+                <p>Browse through our wide range of categories</p>
+            </div>
+
+            <div class="categories-grid">
+
+            <!--<a href="category.html?type=fruits" class="category-link">
+                <div class="category-card">
+                    <img src="assets/images/categories/fruits.jpg" alt="Fresh Fruits" class="category-img">
+                    <span class="category-name">Fruits</span>
+                </div>
+            </a>-->
+
+            <a href="vegetable-category.html?type=vegetables" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Vegetables.jpeg" alt="Vegetables" class="category-img">
+                    <span class="category-name">Vegetables & Fruits</span>
+                </div>
+            </a>
+
+            <a href="dairy_products.html?type=dairy" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Dairy.jpeg" alt="Dairy & Eggs" class="category-img">
+                    <span class="category-name">Dairy & Eggs</span>
+                </div>
+            </a>
+
+            <a href="Bakery.html?type=bakery" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Bakery.jpeg" alt="Bakery" class="category-img">
+                    <span class="category-name">Bakery</span>
+                </div>
+            </a>
+
+            <a href="baverages.html?type=beverages" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Cooldrinks.jpeg" alt="Beverages" class="category-img">
+                    <span class="category-name">Beverages</span>
+                </div>
+            </a>
+
+            <a href="snacks.html?type=snacks" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Snack.jpeg" alt="Snacks" class="category-img">
+                    <span class="category-name">Snacks</span>
+                </div>
+            </a>
+
+            <!--<a href="category.html?type=meat" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Meat.jpeg" alt="Meat & Fish" class="category-img">
+                    <span class="category-name">Meat & Fish</span>
+                </div>
+            </a>-->
+
+            <a href="juice.html?type=juices" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Juice.jpeg" alt="Juices" class="category-img">
+                    <span class="category-name">Juices</span>
+                </div>
+            </a>
+
+            <!--<a href="category.html?type=frozen" class="category-link">
+                <div class="category-card">
+                    <img src="assets/images//frozen.jpg" alt="Frozen Foods" class="category-img">
+                    <span class="category-name">Frozen Foods</span>
+                </div>
+            </a>-->
+
+            <a href="Tea&Coffee.html?type=tea-coffee" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Tea.jpeg" alt="Tea & Coffee Powders" class="category-img">
+                    <span class="category-name">Tea & Coffee Powders</span>
+                </div>
+            </a>
+
+            <!--<a href="category.html?type=biscuits" class="category-link">
+                <div class="category-card">
+                    <img src="assets/images/categories/biscuits.jpg" alt="Baked Items & Biscuits" class="category-img">
+                    <span class="category-name">Baked Items & Biscuits</span>
+                </div>
+            </a>-->
+
+            <a href="atta.html?type=grains" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Rice.jpeg" alt="Atta, Rice & Pulses" class="category-img">
+                    <span class="category-name">Atta, Rice & Pulses</span>
+                </div>
+            </a>
+
+            <a href="dryfruits.html?type=dry-fruits" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Dryfruit.jpeg" alt="Dry Fruits" class="category-img">
+                    <span class="category-name">Dry Fruits</span>
+                </div>
+            </a>
+
+            <a href="masalas.html?type=masala" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Masala.jpeg" alt="Masala Powders" class="category-img">
+                    <span class="category-name">Masala Powders</span>
+                </div>
+            </a>
+
+            <a href="oils.html?type=oils" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Oil.jpeg" alt="Oils" class="category-img">
+                    <span class="category-name">Oils & Sauces</span>
+                </div>
+            </a>
+
+            <a href="cleaningfreshners.html?type=cleaning_liquids" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Clean.jpeg" alt="Cleaning_Liquids" class="category-img">
+                    <span class="category-name">Cleaning Liquids & Room Freshness</span>
+                </div>
+            </a>
+
+            <a href="babycare.html?type=Baby Care" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Baby.jpeg" alt="Baby_Care" class="category-img">
+                    <span class="category-name">BabyCare Products</span>
+                </div>
+            </a>
+
+            <a href="category.html?type=workout" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Workout.jpeg" alt="Workout" class="category-img">
+                    <span class="category-name">Workout Essentials</span>
+                </div>
+            </a>
+
+            <a href="HomeAppliances.html" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Home.jpeg" alt="Home Essentials" class="category-img">
+                    <span class="category-name">Home Essentials</span>
+                </div>
+            </a>
+
+            <a href="Festival.html" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Festival.jpeg" alt="Festival and Occation Needs" class="category-img">
+                    <span class="category-name">Festival and Occation Needs </span>
+                </div>
+            </a>
+
+            <a href="partyessentials.html?type=Party" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Party.jpeg" alt="Party Essentials" class="category-img">
+                    <span class="category-name">Party Essentials</span>
+                </div>
+            </a>
+
+            <a href="Tissues.html?type=Tissues" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Tissue.jpeg" alt="Tissues" class="category-img">
+                    <span class="category-name">Tissues & Sanitizers</span>
+                </div>
+            </a>
+
+            <a href="groomingessentials.html" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Bathroom.jpeg" alt="Bathroom Essentials" class="category-img">
+                    <span class="category-name">Grooming Essentials</span>
+                </div>
+            </a>
+
+            <!-- <a href="category.html?type=sports" class="category-link">
+                <div class="category-card">
+                    <img src="assets/images/categories/masala.jpg" alt="Sports and Fitness" class="category-img">
+                    <span class="category-name">Sports & Fitness</span>
+                </div>
+            </a> -->
+
+            <a href="Chocalates.html" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Chocolates.jpeg" alt="Chocolates and Icecreams" class="category-img">
+                    <span class="category-name">Chocalates </span>
+                </div>
+            </a>
+
+            <a href="icecreams.html?type=masala" class="category-link">
+                <div class="category-card">
+                    <img src="assests/images/Icecream.jpeg" alt="Icecreams" class="category-img">
+                    <span class="category-name">Ice Creams</span>
+                </div>
+            </a> 
+        </div>
+    </section>
+
+
+
+
+        <!-- ==================== PRODUCTS SECTION ==================== -->
+    <section class="products-section" id="productsSection">
+        <div class="section-header">
+            <h2>Hot Sales</h2>
+            <p>Best quality groceries at best prices</p>
+        </div>
+
+        <!-- Products Grid (ONLY ONE) -->
+        <div class="products-grid" id="productsGrid">
+            
+            <!-- Product Card 1 -->
+            <div class="product-card"
+                data-id="101"
+                data-name="Fresh Tomatoes"
+                data-category="vegetables&fruits"
+                data-subcategory="fresh-vegetables"
+                data-price="35"
+                data-original-price="45"
+                data-weight="500g"
+                data-discount="22"
+                data-stock="true"
+                data-image="assests/images/vegetables/tomato.jpeg">
+
+                <span class="product-badge">22% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/vegetables/tomato.jpeg"
+                        alt="Fresh Tomatoes"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+            
+                <div class="product-info">
+                    <h3 class="product-name">Fresh Tomatoes </h3>
+                    <span class="product-weight">500g</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹35</span>
+                            <span class="original-price">₹45</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 2 -->
+            <div class="product-card"
+                data-id="701"
+                data-name="Taj Mahal"
+                data-category="Tea & Coffee"
+                data-subcategory="Tea"
+                data-price="25"
+                data-original-price="30"
+                data-weight="250g"
+                data-discount="17"
+                data-stock="true"
+                data-image="assests/images/Home/tajmahal.jpeg">
+
+                <span class="product-badge">17% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/Home/tajmahal.jpeg"
+                        alt="Taj Mahal"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">Taj Mahal</h3>
+                    <span class="product-weight">250g</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹25</span>
+                            <span class="original-price">₹30</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 3 -->
+            <div class="product-card"
+                data-id="210"
+                data-name="White Eggs"
+                data-category="Dairy Products"
+                data-subcategory="Eggs"
+                data-price="40"
+                data-original-price="50"
+                data-weight="1kg"
+                data-discount="20"
+                data-stock="true"
+                data-image="assests/images/dairy/whiteeggs.jpeg">
+
+                <span class="product-badge">20% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/dairy/whiteeggs.jpeg"
+                        alt="White Eggs"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">White Eggs</h3>
+                    <span class="product-weight">1kg</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹40</span>
+                            <span class="original-price">₹50</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card"
+                data-id="301"
+                data-name="White Bread"
+                data-category="Bakery"
+                data-subcategory="Bread"
+                data-price="40"
+                data-original-price="50"
+                data-weight="1kg"
+                data-discount="20"
+                data-stock="true"
+                data-image="assests/images/bakery/whitebread.jpeg">
+
+                <span class="product-badge">20% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/bakery/whitebread.jpeg"
+                        alt="White Bread"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">White Bread</h3>
+                    <span class="product-weight">1kg</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹40</span>
+                            <span class="original-price">₹50</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card"
+                data-id="401"
+                data-name="Thumbs up"
+                data-category="Baverages"
+                data-subcategory="Cool Drinks"
+                data-price="40"
+                data-original-price="50"
+                data-weight="1kg"
+                data-discount="20"
+                data-stock="true"
+                data-image="assests/images/baverages/thumbsup.jpeg">
+
+                <span class="product-badge">20% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/baverages/thumbsup.jpeg"
+                        alt="Thumbs up"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">Thumbs up</h3>
+                    <span class="product-weight">1kg</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹40</span>
+                            <span class="original-price">₹50</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card"
+                data-id="614"
+                data-name="Tender Coconut Water"
+                data-category="Juices"
+                data-subcategory="Seasonal Juices"
+                data-price="40"
+                data-original-price="50"
+                data-weight="1kg"
+                data-discount="20"
+                data-stock="true"
+                data-image="assests/images/juice/coconutwater.jpeg">
+
+                <span class="product-badge">20% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/juice/coconutwater.jpeg"
+                        alt="Tender Coconut Water"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">Tender Coconut Water</h3>
+                    <span class="product-weight">1kg</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹40</span>
+                            <span class="original-price">₹50</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card"
+                data-id="937"
+                data-name="Organic Cashews"
+                data-category="Dry Fruits"
+                data-subcategory="Organic & Health Focused"
+                data-price="40"
+                data-original-price="50"
+                data-weight="1kg"
+                data-discount="20"
+                data-stock="true"
+                data-image="assests/images/dryfruits/organiccashews.jpeg">
+
+                <span class="product-badge">20% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/dryfruits/organiccashews.jpeg"
+                        alt="Organic Cashews"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">Organic Cashews</h3>
+                    <span class="product-weight">1kg</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹40</span>
+                            <span class="original-price">₹50</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card"
+                data-id="1002"
+                data-name="Lal Mirch (Red Chili Powder)"
+                data-category="Masalas"
+                data-subcategory="Basic Everyday Masalas"
+                data-price="40"
+                data-original-price="50"
+                data-weight="1kg"
+                data-discount="20"
+                data-stock="true"
+                data-image="assests/images/masalas/mirchi.jpeg">
+
+                <span class="product-badge">20% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/masalas/mirchi.jpeg"
+                        alt="Lal Mirch (Red Chili Powder)"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">Lal Mirch (Red Chili Powder)</h3>
+                    <span class="product-weight">1kg</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹40</span>
+                            <span class="original-price">₹50</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card"
+                data-id="1101"
+                data-name="Sunflower Oil"
+                data-category="Oils&Sauces"
+                data-subcategory="fresh-vegetables"
+                data-price="40"
+                data-original-price="50"
+                data-weight="1kg"
+                data-discount="20"
+                data-stock="true"
+                data-image="assests/images/oils/sunflower.jpeg">
+
+                <span class="product-badge">20% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/oils/sunflower.jpeg"
+                        alt="Sunflower Oil"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">Sunflower Oil</h3>
+                    <span class="product-weight">1kg</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹40</span>
+                            <span class="original-price">₹50</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card"
+                data-id="1102"
+                data-name="Palm Oil"
+                data-category="Oils&Sauces"
+                data-subcategory="Cooking oils"
+                data-price="40"
+                data-original-price="50"
+                data-weight="1kg"
+                data-discount="20"
+                data-stock="true"
+                data-image="assests/images/oils/palmoil.jpeg">
+
+                <span class="product-badge">20% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/oils/palmoil.jpeg"
+                        alt="Palm Oil"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">Palm Oil</h3>
+                    <span class="product-weight">1kg</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹40</span>
+                            <span class="original-price">₹50</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card"
+                data-id="1201"
+                data-name="Lizol Citrus"
+                data-category="Cleaning liquids&Room freshners"
+                data-subcategory="Cleaning Liquids"
+                data-price="40"
+                data-original-price="50"
+                data-weight="1kg"
+                data-discount="20"
+                data-stock="true"
+                data-image="assests/images/cleaning/lizolcitrus.jpeg">
+
+                <span class="product-badge">20% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/cleaning/lizolcitrus.jpeg"
+                        alt="Lizol Citrus"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">Lizol Citrus</h3>
+                    <span class="product-weight">1kg</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹40</span>
+                            <span class="original-price">₹50</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card" 
+                        data-id="1301" 
+                        data-name="Feeding Bottle"
+                        data-category="Baby care" 
+                        data-subcategory="Feeding" 
+                        data-price="35" 
+                        data-original-price="45" 
+                        data-weight="500g" 
+                        data-discount="22" 
+                        data-stock="true"
+                        data-image="assests/images/babycare/feedingbottle.jpeg">
+                        <span class="product-badge">22% OFF</span>
+                        <div class="product-image-container">
+                            <img src="assests/images/babycare/feedingbottle.jpeg" alt="Feeding Bottle" class="product-image" loading="lazy">
+                            <button class="wishlist-btn">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Feeding Bottle</h3>
+                            <span class="product-weight">500g</span>
+                            <div class="product-price-row">
+                                <div class="product-price">
+                                    <span class="current-price">₹35</span>
+                                    <span class="original-price">₹45</span>
+                                </div>
+                                <button class="add-to-cart-btn">ADD</button>
+                        </div>
+                </div>
+            </div>
+
+
+            <div class="product-card" 
+                        data-id="314" 
+                        data-name="Egg Puff"
+                        data-category="Bakery" 
+                        data-subcategory="Puffs" 
+                        data-price="89" 
+                        data-original-price="110" 
+                        data-weight="1kg" 
+                        data-discount="19" 
+                        data-stock="true"
+                        data-image="assests/images/bakery/eggpuff.jpeg">
+                        <span class="product-badge">19% OFF</span>
+                        <div class="product-image-container">
+                            <img src="assests/images/bakery/eggpuff.jpeg" alt="Egg Puff" class="product-image" loading="lazy">
+                            <button class="wishlist-btn">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Egg Puff</h3>
+                            <span class="product-weight">1kg</span>
+                            <div class="product-price-row">
+                                <div class="product-price">
+                                    <span class="current-price">₹89</span>
+                                    <span class="original-price">₹110</span>
+                                </div>
+                                <button class="add-to-cart-btn">ADD</button>
+                            </div>
+                        </div>
+                    </div>
+
+            <div class="product-card" 
+                        data-id="1510" 
+                        data-name="Electric Iron"
+                        data-category="Home Appliances" 
+                        data-subcategory="Laundry" 
+                        data-price="15" 
+                        data-original-price="18" 
+                        data-weight="100g" 
+                        data-discount="17" 
+                        data-stock="true"
+                        data-image="assests/images/homeappliances/electriciron.jpeg">
+                        <span class="product-badge">17% OFF</span>
+                        <div class="product-image-container">
+                            <img src="assests/images/homeappliances/electriciron.jpeg" alt="Electric Iron" class="product-image" loading="lazy">
+                            <button class="wishlist-btn">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Electric Iron</h3>
+                            <span class="product-weight">100g</span>
+                            <div class="product-price-row">
+                                <div class="product-price">
+                                    <span class="current-price">₹15</span>
+                                    <span class="original-price">₹18</span>
+                                </div>
+                                <button class="add-to-cart-btn">ADD</button>
+                            </div>
+                        </div>
+                    </div>
+            <div class="product-card" 
+                        data-id="1601" 
+                        data-name="Agarbatti"
+                        data-category="Festival and occassion needs" 
+                        data-subcategory="Puja & Religious Items" 
+                        data-price="35" 
+                        data-original-price="45" 
+                        data-weight="500g" 
+                        data-discount="22" 
+                        data-stock="true"
+                        data-image="assests/images/festivalneeds/Agarbatti.jpeg">
+                        <span class="product-badge">22% OFF</span>
+                        <div class="product-image-container">
+                            <img src="assests/images/festivalneeds/Agarbatti.jpeg" alt="Agarbatti" class="product-image" loading="lazy">
+                            <button class="wishlist-btn">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Agarbatti</h3>
+                            <span class="product-weight">500g</span>
+                            <div class="product-price-row">
+                                <div class="product-price">
+                                    <span class="current-price">₹35</span>
+                                    <span class="original-price">₹45</span>
+                                </div>
+                                <button class="add-to-cart-btn">ADD</button>
+                            </div>
+                        </div>
+            </div>
+
+            <div class="product-card"
+                data-id="2002" 
+                        data-name="Cadbury Silk"
+                        data-category="Chocalates" 
+                        data-subcategory="Milk Chocolates" 
+                        data-price="25" 
+                        data-original-price="30" 
+                        data-weight="250g" 
+                        data-discount="17" 
+                        data-stock="true"
+                        data-image="assests/images/chocolate/dairymilksilk.jpeg">
+                        <span class="product-badge">17% OFF</span>
+                        <div class="product-image-container">
+                            <img src="assests/images/chocolate/dairymilksilk.jpeg" alt="Cadbury Silk" class="product-image" loading="lazy">
+                            <button class="wishlist-btn">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Cadbury Silk</h3>
+                            <span class="product-weight">250g</span>
+                            <div class="product-price-row">
+                                <div class="product-price">
+                                    <span class="current-price">₹25</span>
+                                    <span class="original-price">₹30</span>
+                                </div>
+                                <button class="add-to-cart-btn">ADD</button>
+                            </div>
+                        </div>
+            </div>
+
+            <div class="product-card"
+                data-id="2010" 
+                        data-name="Nestlé KitKat"
+                        data-category="Chocalates" 
+                        data-subcategory="Wafer Chocolatess" 
+                        data-price="15" 
+                        data-original-price="18" 
+                        data-weight="100g" 
+                        data-discount="17" 
+                        data-stock="true"
+                        data-image="assests/images/chocolate/nestlekitkat.jpeg">
+                        <span class="product-badge">17% OFF</span>
+                        <div class="product-image-container">
+                            <img src="assests/images/chocolate/nestlekitkat.jpeg" alt="Nestlé KitKat" class="product-image" loading="lazy">
+                            <button class="wishlist-btn">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Nestlé KitKat</h3>
+                            <span class="product-weight">100g</span>
+                            <div class="product-price-row">
+                                <div class="product-price">
+                                    <span class="current-price">₹15</span>
+                                    <span class="original-price">₹18</span>
+                                </div>
+                                <button class="add-to-cart-btn">ADD</button>
+                            </div>
+                        </div>
+            </div>
+
+            <div class="product-card"
+                data-id="2021" 
+                        data-name="Kinder Joy"
+                        data-category="Chocalates" 
+                        data-subcategory="Kids Favourite Chocolates" 
+                        data-price="89" 
+                        data-original-price="110" 
+                        data-weight="1kg" 
+                        data-discount="19" 
+                        data-stock="true"
+                        data-image="assests/images/chocolate/kinderjoy.jpeg">
+                        <span class="product-badge">19% OFF</span>
+                        <div class="product-image-container">
+                            <img src="assests/images/chocolate/kinderjoy.jpeg" alt="Kinder Joy" class="product-image" loading="lazy">
+                            <button class="wishlist-btn">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Kinder Joy</h3>
+                            <span class="product-weight">1kg</span>
+                            <div class="product-price-row">
+                                <div class="product-price">
+                                    <span class="current-price">₹89</span>
+                                    <span class="original-price">₹110</span>
+                                </div>
+                                <button class="add-to-cart-btn">ADD</button>
+                            </div>
+                        </div>
+            </div>
+
+            <div class="product-card"
+                data-id="2120" 
+                        data-name="Pistachio"
+                        data-category="Ice Creams" 
+                        data-subcategory="Unique & Modern" 
+                        data-price="129" 
+                        data-original-price="160" 
+                        data-weight="500g" 
+                        data-discount="19" 
+                        data-stock="true"
+                        data-image="assests/images/icecreams/pistachio.jpeg">
+                        <span class="product-badge">19% OFF</span>
+                        <div class="product-image-container">
+                            <img src="assests/images/icecreams/pistachio.jpeg" alt="Pistachio" class="product-image" loading="lazy">
+                            <button class="wishlist-btn">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Pistachio</h3>
+                            <span class="product-weight">500g</span>
+                            <div class="product-price-row">
+                                <div class="product-price">
+                                    <span class="current-price">₹129</span>
+                                    <span class="original-price">₹160</span>
+                                </div>
+                                <button class="add-to-cart-btn">ADD</button>
+                            </div>
+                        </div>
+            </div>
+
+            <div class="product-card"
+                data-id="2116" 
+                data-name="Chocolate Chip Cookie Dough"
+                data-category="Ice Creams" 
+                data-subcategory="Dessert-Inspired Flavors" 
+                        data-price="149" 
+                        data-original-price="180" 
+                        data-weight="1pc" 
+                        data-discount="17" 
+                        data-stock="true"
+                        data-image="assests/images/icecreams/chocolatechipcookie.jpeg">
+                        <span class="product-badge">17% OFF</span>
+                        <div class="product-image-container">
+                            <img src="assests/images/icecreams/chocolatechipcookie.jpeg" alt="Chocolate Chip Cookie Dough" class="product-image" loading="lazy">
+                            <button class="wishlist-btn">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Chocolate Chip Cookie Dough</h3>
+                            <span class="product-weight">1pc</span>
+                            <div class="product-price-row">
+                                <div class="product-price">
+                                    <span class="current-price">₹149</span>
+                                    <span class="original-price">₹180</span>
+                                </div>
+                                <button class="add-to-cart-btn">ADD</button>
+                            </div>
+                        </div>
+            </div>
+
+            <!--<div class="product-card"
+                data-id="201"
+                data-name="Fresh Potatoes"
+                data-category="vegetables"
+                data-subcategory="fresh-vegetables"
+                data-price="40"
+                data-original-price="50"
+                data-weight="1kg"
+                data-discount="20"
+                data-stock="true"
+                data-image="assests/images/vegetables/potato.jpeg">
+
+                <span class="product-badge">20% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/vegetables/potato.jpeg"
+                        alt="Fresh Potatoes"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">Fresh Potatoes</h3>
+                    <span class="product-weight">1kg</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹40</span>
+                            <span class="original-price">₹50</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card"
+                data-id="201"
+                data-name="Fresh Potatoes"
+                data-category="vegetables"
+                data-subcategory="fresh-vegetables"
+                data-price="40"
+                data-original-price="50"
+                data-weight="1kg"
+                data-discount="20"
+                data-stock="true"
+                data-image="assests/images/vegetables/potato.jpeg">
+
+                <span class="product-badge">20% OFF</span>
+
+                <div class="product-image-container">
+                    <img src="assests/images/vegetables/potato.jpeg"
+                        alt="Fresh Potatoes"
+                        class="product-image"
+                        loading="lazy">
+                    <button class="wishlist-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">Fresh Potatoes</h3>
+                    <span class="product-weight">1kg</span>
+                    <div class="product-price-row">
+                        <div class="product-price">
+                            <span class="current-price">₹40</span>
+                            <span class="original-price">₹50</span>
+                        </div>
+                        <button class="add-to-cart-btn">ADD</button>
+                    </div>
+                </div>
+            </div>-->
+
+        </div>
+    </section>
+
+
+            <!-- ==================== OFFERS SECTION ==================== -->
+            <section class="offers-section" id="offersSection">
+                <div class="section-header">
+                    <h2>Today's Best Deals</h2>
+                    <p>Don't miss out on these amazing offers</p>
+                </div>
+                
+                <!-- Offers Grid -->
+                <div class="offers-grid">
+                    <!-- Offer Card 1 -->
+                    <div class="offer-card offer-1">
+                        <div class="offer-content">
+                            <span class="offer-tag">50% OFF</span>
+                            <h3>Fresh Fruits</h3>
+                            <p>On your first order</p>
+                            <button class="offer-btn">Shop Now</button>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=300" alt="Fruits Offer">
+                    </div>
+                    
+                    <!-- Offer Card 2 -->
+                    <div class="offer-card offer-2">
+                        <div class="offer-content">
+                            <span class="offer-tag">Buy 1 Get 1</span>
+                            <h3>Organic Veggies</h3>
+                            <p>Limited time offer</p>
+                            <button class="offer-btn">Shop Now</button>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=300" alt="Veggies Offer">
+                    </div>
+                    
+                    <!-- Offer Card 3 -->
+                    <div class="offer-card offer-3">
+                        <div class="offer-content">
+                            <span class="offer-tag">Free Delivery</span>
+                            <h3>Dairy Products</h3>
+                            <p>On orders above ₹500</p>
+                            <button class="offer-btn">Shop Now</button>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=300" alt="Dairy Offer">
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== WHY CHOOSE US SECTION ==================== -->
+            <section class="why-us-section" id="whyUsSection">
+                <div class="section-header">
+                    <h2>Why Choose FreshMart?</h2>
+                    <p>We're committed to bringing you the best shopping experience</p>
+                </div>
+                
+                <!-- Features Grid -->
+                <div class="why-us-grid">
+                    <!-- Feature 1 -->
+                    <div class="why-us-card">
+                        <div class="why-us-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h3>100% Fresh Products</h3>
+                        <p>All our products are sourced directly from farms and verified suppliers</p>
+                    </div>
+                    
+                    <!-- Feature 2 -->
+                    <div class="why-us-card">
+                        <div class="why-us-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <h3>Express Delivery</h3>
+                        <p>Get your groceries delivered within 2 hours of placing your order</p>
+                    </div>
+                    
+                    <!-- Feature 3 -->
+                    <div class="why-us-card">
+                        <div class="why-us-icon">
+                            <i class="fas fa-hand-holding-usd"></i>
+                        </div>
+                        <h3>Best Prices</h3>
+                        <p>We offer competitive prices and regular discounts on all products</p>
+                    </div>
+                    
+                    <!-- Feature 4 -->
+                    <div class="why-us-card">
+                        <div class="why-us-icon">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h3>24/7 Support</h3>
+                        <p>Our customer support team is always ready to help you</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- ==================== FOOTER ==================== -->
+        <footer class="footer" id="footer">
+            <div class="footer-content">
+                <!-- Footer About -->
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <i class="fas fa-leaf"></i>
+                        <span>FreshMart</span>
+                    </div>
+                    <p>Your trusted online grocery store delivering fresh products right to your doorstep.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Footer Links -->
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">FAQs</a></li>
+                        <li><a href="#">Terms & Conditions</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Footer Categories -->
+                <div class="footer-section">
+                    <h4>Categories</h4>
+                    <ul>
+                        <li><a href="#">Fresh Fruits</a></li>
+                        <li><a href="#">Vegetables</a></li>
+                        <li><a href="#">Dairy & Eggs</a></li>
+                        <li><a href="#">Bakery</a></li>
+                        <li><a href="#">Beverages</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Footer Contact -->
+                <div class="footer-section">
+                    <h4>Contact Us</h4>
+                    <div class="contact-info">
+                        <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+                        <p><i class="fas fa-envelope"></i> support@freshmart.com</p>
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Market Street, Mumbai, India</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer Bottom -->
+            <div class="footer-bottom">
+                <p>&copy; 2024 FreshMart. All rights reserved.</p>
+            </div>
+        </footer>
+
+        <!-- ==================== TOAST NOTIFICATION ==================== -->
+        <div class="toast" id="toast">
+            <div class="toast-content">
+                <i class="fas fa-check-circle"></i>
+                <span id="toastMessage">Item added to cart!</span>
+            </div>
+        </div>
+
+        <!-- ==================== VOICE SEARCH MODAL ==================== -->
+        <div class="modal" id="voiceModal">
+            <div class="modal-content voice-modal-content">
+                <button class="modal-close" id="closeVoiceModal">&times;</button>
+                <div class="voice-animation" id="voiceAnimation">
+                    <div class="voice-circle"></div>
+                    <div class="voice-circle"></div>
+                    <div class="voice-circle"></div>
+                </div>
+                <p id="voiceStatus">Listening...</p>
+                <p id="voiceResult" class="voice-result"></p>
+            </div>
+        </div>
+
+        <!-- Link to external JavaScript file -->
+        <script src="js/script.js"></script>
+    </body>
+    </html>
+
+
+
+
+
