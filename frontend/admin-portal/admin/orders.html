@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Additional Order Specific Styles */
+        .order-tracking {
+            padding: 24px;
+            background: var(--gray-50);
+            border-radius: var(--radius-xl);
+            margin-top: 24px;
+        }
+        
+        .tracking-header {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--gray-700);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 20px;
+        }
+        
+        .tracking-timeline {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            padding: 0 20px;
+        }
+        
+        .tracking-timeline::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 60px;
+            right: 60px;
+            height: 3px;
+            background: var(--gray-200);
+        }
+        
+        .tracking-step {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .step-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 3px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .step-icon svg {
+            width: 20px;
+            height: 20px;
+            color: var(--gray-400);
+        }
+        
+        .tracking-step.completed .step-icon {
+            background: var(--success-500);
+            border-color: var(--success-500);
+        }
+        
+        .tracking-step.completed .step-icon svg {
+            color: white;
+        }
+        
+        .tracking-step.active .step-icon {
+            background: var(--primary-500);
+            border-color: var(--primary-500);
+            animation: pulse 2s infinite;
+        }
+        
+        .tracking-step.active .step-icon svg {
+            color: white;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(59, 130, 246, 0); }
+        }
+        
+        .step-label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--gray-500);
+        }
+        
+        .tracking-step.completed .step-label,
+        .tracking-step.active .step-label {
+            color: var(--gray-900);
+        }
+        
+        .step-time {
+            font-size: 0.75rem;
+            color: var(--gray-400);
+            margin-top: 4px;
+        }
+        
+        /* Status Update Buttons */
+        .status-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .status-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+            background: var(--white);
+        }
+        
+        .status-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .status-btn.pack {
+            border-color: var(--info-200);
+            color: var(--info-700);
+        }
+        
+        .status-btn.pack:hover {
+            background: var(--info-100);
+        }
+        
+        .status-btn.ship {
+            border-color: var(--warning-200);
+            color: var(--warning-700);
+        }
+        
+        .status-btn.ship:hover {
+            background: var(--warning-100);
+        }
+        
+        .status-btn.deliver {
+            border-color: var(--success-200);
+            color: var(--success-700);
+        }
+        
+        .status-btn.deliver:hover {
+            background: var(--success-100);
+        }
+        
+        .status-btn.cancel {
+            border-color: var(--danger-200);
+            color: var(--danger-700);
+        }
+        
+        .status-btn.cancel:hover {
+            background: var(--danger-100);
+        }
+        
+        .status-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Order Items List */
+        .order-items {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .order-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            margin-bottom: 8px;
+        }
+        
+        .item-details {
+            flex: 1;
+        }
+        
+        .item-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 0.9375rem;
+        }
+        
+        .item-info {
+            font-size: 0.8125rem;
+            color: var(--gray-500);
+            margin-top: 2px;
+        }
+        
+        .item-price {
+            font-weight: 700;
+            color: var(--gray-900);
+            font-size: 1rem;
+        }
+        
+        /* Payment Method Badge */
+        .payment-method {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .payment-method.cod {
+            background: var(--warning-100);
+            color: var(--warning-700);
+        }
+        
+        .payment-method.online {
+            background: var(--success-100);
+            color: var(--success-700);
+        }
+        
+        /* Delivery Assignment */
+        .delivery-assignment {
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--purple-50);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--purple-200);
+        }
+        
+        .delivery-assignment h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--purple-700);
+            margin-bottom: 12px;
+        }
+        
+        .delivery-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+        
+        .delivery-inputs input {
+            padding: 10px 14px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+        }
+        
+        .delivery-inputs button {
+            padding: 10px 20px;
+            background: var(--purple-600);
+            color: white;
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .delivery-inputs button:hover {
+            background: var(--purple-700);
+        }
+
+        @media (max-width: 768px) {
+            .tracking-timeline {
+                flex-direction: column;
+                padding: 0;
+            }
+            
+            .tracking-timeline::before {
+                top: 40px;
+                left: 24px;
+                right: auto;
+                bottom: 40px;
+                width: 3px;
+                height: auto;
+            }
+            
+            .tracking-step {
+                display: flex;
+                align-items: center;
+                text-align: left;
+                margin-bottom: 24px;
+            }
+            
+            .step-icon {
+                margin: 0 16px 0 0;
+            }
+            
+            .status-actions {
+                flex-direction: column;
+            }
+            
+            .delivery-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="pageLoader" class="page-loader">
+        <div class="loading-spinner lg"></div>
+        <p class="page-loader-text">Loading orders...</p>
+    </div>
+
+    <div class="admin-layout" id="adminLayout" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                    </div>
+                    <span class="sidebar-logo-text">Super Admin</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-title">Main</span>
+                    <a href="dashboard.html" class="nav-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <span class="nav-section-title">Management</span>
+                    <a href="users.html" class="nav-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                        </svg>
+                        Users
+                    </a>
+                    <a href="orders.html" class="nav-item active">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        Orders
+                        <span class="nav-item-badge" id="pendingBadge">0</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="showComingSoon('Products')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        </svg>
+                        Products
+                        <span class="nav-item-badge">Soon</span>
+                    </a>
+                </div>
+
+                <div class="nav-section hidden" id="adminSection">
+                    <span class="nav-section-title">Admin</span>
+                    <a href="admins.html" class="nav-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        Manage Admins
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="admin-profile">
+                    <div class="admin-avatar" id="adminAvatar">AD</div>
+                    <div class="admin-info">
+                        <div class="admin-email" id="adminEmail">admin@example.com</div>
+                        <div class="admin-role" id="adminRole">Admin</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="3" y1="18" x2="21" y2="18"/>
+                        </svg>
+                    </button>
+                    <h1 class="page-title">Orders Management</h1>
+                </div>
+                <div class="header-right">
+                    <button class="header-btn" id="refreshBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"/>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                        </svg>
+                    </button>
+                    <button class="header-btn logout-btn" id="logoutBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card blue">
+                        <div class="stat-icon blue">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                                <line x1="3" y1="6" x2="21" y2="6"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total Orders</div>
+                            <div class="stat-value" id="totalOrdersStat">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card yellow">
+                        <div class="stat-icon yellow">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">Pending</div>
+                            <div class="stat-value" id="pendingOrdersStat">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card green">
+                        <div class="stat-icon green">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">Delivered</div>
+                            <div class="stat-value" id="deliveredOrdersStat">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card purple">
+                        <div class="stat-icon purple">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23"/>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">Today's Revenue</div>
+                            <div class="stat-value" id="todayRevenueStat">₹0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <div class="search-box">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                            <input type="text" id="searchInput" placeholder="Search by Order ID, Customer, Phone...">
+                        </div>
+                        <select id="statusFilter" class="filter-select">
+                            <option value="">All Status</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="packed">Packed</option>
+                            <option value="out_for_delivery">Out for Delivery</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <select id="dateFilter" class="filter-select">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                    <div class="toolbar-right">
+                        <div class="reports-dropdown">
+                            <button class="btn btn-success">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Export
+                            </button>
+                            <div class="reports-menu">
+                                <button class="report-btn" onclick="exportOrders('today')">Today's Orders</button>
+                                <button class="report-btn" onclick="exportOrders('week')">This Week</button>
+                                <button class="report-btn" onclick="exportOrders('month')">This Month</button>
+                                <div class="dropdown-divider"></div>
+                                <button class="report-btn" onclick="exportOrders('all')">Export All</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            </svg>
+                            All Orders
+                            <span id="orderCount" style="font-weight: 400; color: var(--gray-500); font-size: 0.875rem;">(0)</span>
+                        </h3>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Payment</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                                <tr>
+                                    <td colspan="8" class="loading-cell">
+                                        <div class="loading-spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer">
+                        <div class="table-info" id="tableInfo">Showing 0 orders</div>
+                        <div class="pagination" id="pagination"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div class="modal" id="orderModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3 class="modal-title">Order Details</h3>
+                <button class="modal-close" onclick="closeOrderModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="orderModalContent">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module" src="js/orders.js"></script>
+</body>
+</html>

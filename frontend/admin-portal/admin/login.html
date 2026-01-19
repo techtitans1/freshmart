@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <path d="M9 12l2 2 4-4"></path>
+                    </svg>
+                </div>
+                <h1>Admin Portal</h1>
+                <p>Sign in to your account</p>
+            </div>
+            
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required 
+                        autocomplete="email"
+                        placeholder="admin@example.com"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-input">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required 
+                            autocomplete="current-password"
+                            placeholder="••••••••"
+                        >
+                        <button type="button" id="togglePassword" class="toggle-password">
+                            <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-closed hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="errorMessage" class="error-message hidden"></div>
+                
+                <button type="submit" id="loginBtn" class="btn btn-primary btn-block">
+                    <span class="btn-text">Sign In</span>
+                    <span class="btn-loader hidden">
+                        <svg class="spinner" viewBox="0 0 50 50">
+                            <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                        </svg>
+                    </span>
+                </button>
+            </form>
+            
+            <div class="login-footer">
+                <p>Protected admin area. Unauthorized access prohibited.</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, onAuthStateChanged } from './js/firebase-config.js';
+        import { loginAdmin, checkAdminRole } from './js/auth.js';
+
+        // Check if already logged in
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const adminData = await checkAdminRole(user);
+                if (adminData) {
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        });
+
+        // DOM Elements
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const togglePassword = document.getElementById('togglePassword');
+
+        // Toggle password visibility
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            togglePassword.querySelector('.eye-open').classList.toggle('hidden');
+            togglePassword.querySelector('.eye-closed').classList.toggle('hidden');
+        });
+
+        // Show error
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+
+        // Hide error
+        function hideError() {
+            errorMessage.classList.add('hidden');
+        }
+
+        // Set loading state
+        function setLoading(loading) {
+            loginBtn.disabled = loading;
+            loginBtn.querySelector('.btn-text').classList.toggle('hidden', loading);
+            loginBtn.querySelector('.btn-loader').classList.toggle('hidden', !loading);
+        }
+
+        // Handle form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+            
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showError('Please enter both email and password.');
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                await loginAdmin(email, password);
+                window.location.href = 'dashboard.html';
+            } catch (error) {
+                let message = 'Login failed. Please try again.';
+                
+                switch (error.code) {
+                    case 'auth/invalid-credential':
+                    case 'auth/wrong-password':
+                    case 'auth/user-not-found':
+                        message = 'Invalid email or password.';
+                        break;
+                    case 'auth/too-many-requests':
+                        message = 'Too many failed attempts. Please try again later.';
+                        break;
+                    case 'auth/network-request-failed':
+                        message = 'Network error. Please check your connection.';
+                        break;
+                    default:
+                        if (error.message) {
+                            message = error.message;
+                        }
+                }
+                
+                showError(message);
+            } finally {
+                setLoading(false);
+            }
+        });
+    </script>
+</body>
+</html>
