@@ -1,0 +1,17 @@
+{
+  "name": "admin-functions",
+  "version": "1.0.0",
+  "description": "Firebase Cloud Functions for Admin Portal",
+  "main": "index.js",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.11.1",
+    "firebase-functions": "^4.5.0"
+  }
+}
