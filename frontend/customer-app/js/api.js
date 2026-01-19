@@ -2,8 +2,8 @@
  * FreshMart API Client
  * Connects frontend to FastAPI backend
  */
+const API_BASE = "https://freshmart-2-sltg.onrender.com";
 
-const API_BASE_URL = 'http://localhost:8000/api';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -244,4 +244,5 @@ const api = new FreshMartAPI();
 
 // Export for use in other files
 window.FreshMartAPI = api;
+
 window.api = api;
