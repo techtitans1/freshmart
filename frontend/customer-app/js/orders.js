@@ -20,6 +20,7 @@ const db = firebase.firestore();
 // State
 let allOrders = [];
 let currentFilter = 'all';
+let unsubscribeOrders = null; // For real-time updates
 
 // DOM Elements
 const DOM = {
@@ -82,28 +83,140 @@ function setupEventListeners() {
             closeOrderModal();
         }
     });
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        if (unsubscribeOrders) {
+            unsubscribeOrders();
+        }
+    });
 }
 
-// Load Orders from Firestore
+// Load Orders from Firestore (with real-time updates)
 async function loadOrders(uid) {
     showLoading();
     try {
-        const doc = await db.collection('users').doc(uid).get();
-        if (doc.exists) {
-            const data = doc.data();
-            allOrders = data.orders || [];
-            // Sort orders by date (newest first)
-            allOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Unsubscribe from previous listener if exists
+        if (unsubscribeOrders) {
+            unsubscribeOrders();
         }
-        updateStats();
-        renderOrders();
+        
+        console.log('Loading orders for user:', uid);
+        
+        // Try with orderBy first
+        let ordersQuery = db.collection('orders')
+            .where('userId', '==', uid);
+        
+        // Try to add orderBy - will fail if index doesn't exist
+        try {
+            ordersQuery = ordersQuery.orderBy('createdAt', 'desc');
+            console.log('Using query with orderBy');
+        } catch (indexError) {
+            console.warn('OrderBy not available, using without ordering:', indexError);
+        }
+        
+        // Set up real-time listener for user's orders
+        unsubscribeOrders = ordersQuery.onSnapshot((snapshot) => {
+            console.log(`Received ${snapshot.size} orders from Firestore`);
+            allOrders = [];
+            
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                console.log('Order data:', doc.id, data);
+                
+                allOrders.push({
+                    id: doc.id,
+                    ...data,
+                    // Convert Firestore timestamp to Date string for compatibility
+                    date: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : 
+                          data.createdAt || 
+                          data.orderDate || 
+                          new Date().toISOString()
+                });
+            });
+            
+            // Sort orders manually if orderBy wasn't used
+            allOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            console.log(`Loaded ${allOrders.length} orders`);
+            updateStats();
+            renderOrders();
+            hideLoading();
+            
+            // Show notification for status changes (not on initial load)
+            if (snapshot.docChanges().length > 0 && allOrders.length > 0) {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "modified") {
+                        const order = change.doc.data();
+                        if (order.status === 'shipped' || order.status === 'out_for_delivery') {
+                            showToast('Your order is out for delivery!', 'success');
+                        } else if (order.status === 'delivered') {
+                            showToast('Your order has been delivered!', 'success');
+                        }
+                    }
+                });
+            }
+        }, (error) => {
+            console.error('Snapshot error:', error);
+            console.error('Error code:', error.code);
+            console.error('Error message:', error.message);
+            
+            // Handle specific error types
+            if (error.code === 'failed-precondition' || error.code === 9) {
+                console.error('INDEX REQUIRED - Check console for index creation link');
+                showToast('Creating database index... Please refresh in a moment', 'info');
+                // Try without orderBy as fallback
+                loadOrdersWithoutIndex(uid);
+            } else if (error.code === 'permission-denied') {
+                console.error('PERMISSION DENIED - Check Firestore security rules');
+                showToast('Access denied. Please check your permissions.', 'error');
+            } else {
+                showToast('Failed to load orders: ' + error.message, 'error');
+            }
+            hideLoading();
+        });
+            
     } catch (error) {
-        console.error('Error loading orders:', error);
-        showToast('Failed to load orders', 'error');
+        console.error('Error setting up orders listener:', error);
+        showToast('Failed to load orders: ' + error.message, 'error');
+        hideLoading();
     }
-    hideLoading();
 }
-
+// Fallback: Load orders without orderBy (if index doesn't exist)
+function loadOrdersWithoutIndex(uid) {
+    console.log('Loading orders without index...');
+    
+    unsubscribeOrders = db.collection('orders')
+        .where('userId', '==', uid)
+        .onSnapshot((snapshot) => {
+            console.log(`Received ${snapshot.size} orders (no index)`);
+            allOrders = [];
+            
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                allOrders.push({
+                    id: doc.id,
+                    ...data,
+                    date: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : 
+                          data.createdAt || 
+                          data.orderDate || 
+                          new Date().toISOString()
+                });
+            });
+            
+            // Sort manually
+            allOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            console.log(`Loaded ${allOrders.length} orders`);
+            updateStats();
+            renderOrders();
+            hideLoading();
+        }, (error) => {
+            console.error('Fallback query also failed:', error);
+            showToast('Unable to load orders. Please contact support.', 'error');
+            hideLoading();
+        });
+}
 // Update Statistics
 function updateStats() {
     const delivered = allOrders.filter(o => o.status?.toLowerCase() === 'delivered').length;
@@ -159,7 +272,7 @@ function createOrderCard(order) {
                 <div class="order-id-section">
                     <div class="order-icon">${emoji}</div>
                     <div class="order-id-info">
-                        <h3>Order #${order.id}</h3>
+                        <h3>Order #${order.id.substring(0, 8)}</h3>
                         <span class="order-date">${formattedDate}</span>
                     </div>
                 </div>
@@ -198,7 +311,23 @@ function viewOrderDetails(orderId) {
     const order = allOrders.find(o => o.id == orderId);
     if (!order) return;
 
-    DOM.orderModalTitle.textContent = `Order #${order.id}`;
+    DOM.orderModalTitle.textContent = `Order #${order.id.substring(0, 8)}`;
+    
+    // Handle address - it might be an object or string
+    let addressHtml = '';
+    if (typeof order.address === 'object') {
+        const addr = order.address;
+        addressHtml = `
+            <strong>${addr.name || 'N/A'}</strong><br>
+            ${addr.address || ''}<br>
+            ${addr.city || ''} - ${addr.pincode || ''}<br>
+            ${addr.state || ''}<br>
+            Phone: ${addr.phone ? '+91 ' + addr.phone : 'N/A'}
+        `;
+    } else {
+        addressHtml = order.address || 'N/A';
+    }
+    
     DOM.orderModalBody.innerHTML = `
         <div class="order-detail-section">
             <h3><i class="fas fa-info-circle"></i> Order Information</h3>
@@ -212,7 +341,7 @@ function viewOrderDetails(orderId) {
             </div>
             <div class="detail-row">
                 <span class="detail-label">Delivery Address</span>
-                <span class="detail-value">${order.address || 'N/A'}</span>
+                <span class="detail-value">${addressHtml}</span>
             </div>
         </div>
         
@@ -264,7 +393,7 @@ function closeOrderModal() {
 
 // Track Order
 function trackOrder(orderId) {
-    showToast('Tracking feature coming soon!', 'info');
+    window.location.href = `order-tracking.html?orderId=${orderId}`;
 }
 
 // Reorder
@@ -294,7 +423,9 @@ function getStatusClass(status) {
         'confirmed': 'pending',
         'pending': 'pending',
         'processing': 'processing',
+        'packed': 'processing',
         'shipped': 'shipped',
+        'out_for_delivery': 'shipped',
         'cancelled': 'cancelled'
     };
     return statusMap[status?.toLowerCase()] || 'pending';
@@ -302,15 +433,19 @@ function getStatusClass(status) {
 
 function formatStatus(status) {
     if (!status) return 'Pending';
-    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    
+    // Handle snake_case statuses
+    const formatted = status.replace(/_/g, ' ');
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1).toLowerCase();
 }
 
 function getOrderEmoji(order) {
     const status = order.status?.toLowerCase();
     if (status === 'delivered') return '✅';
     if (status === 'cancelled') return '❌';
-    if (status === 'shipped') return '🚚';
-    return '📦';
+    if (status === 'shipped' || status === 'out_for_delivery') return '🚚';
+    if (status === 'packed') return '📦';
+    return '🛒';
 }
 
 function formatDate(dateString) {
@@ -337,10 +472,14 @@ function updateCartCount() {
     try {
         const cart = JSON.parse(localStorage.getItem('freshmart_cart') || '[]');
         const total = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
-        DOM.cartCount.textContent = total;
-        DOM.cartCount.style.display = total > 0 ? 'flex' : 'none';
+        if (DOM.cartCount) {
+            DOM.cartCount.textContent = total;
+            DOM.cartCount.style.display = total > 0 ? 'flex' : 'none';
+        }
     } catch {
-        DOM.cartCount.style.display = 'none';
+        if (DOM.cartCount) {
+            DOM.cartCount.style.display = 'none';
+        }
     }
 }
 
@@ -382,3 +521,5 @@ window.closeOrderModal = closeOrderModal;
 window.trackOrder = trackOrder;
 window.reorder = reorder;
 window.hideToast = hideToast;
+
+console.log('%c📦 Orders Page Ready', 'color: #4caf50; font-size: 16px; font-weight: bold');
